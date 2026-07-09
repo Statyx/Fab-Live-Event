@@ -75,8 +75,8 @@ def _card(name, x, y, w, h, table, measure, accent, title, z=1):
         "config": json.dumps({
             "name": name, "layouts": [{"id": 0, "position": {"x": x, "y": y, "z": z, "width": w, "height": h}}],
             "singleVisual": {
-                "visualType": "cardVisual",
-                "projections": {"Data": [{"queryRef": f"{table}.{measure}"}]},
+                "visualType": "card",
+                "projections": {"Values": [{"queryRef": f"{table}.{measure}"}]},
                 "prototypeQuery": {
                     "Version": 2,
                     "From": [{"Name": alias, "Entity": table, "Type": 0}],
@@ -85,13 +85,13 @@ def _card(name, x, y, w, h, table, measure, accent, title, z=1):
                 },
                 "drillFilterOtherVisuals": True,
                 "objects": {
-                    "outline": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
-                    "calloutValue": [{"properties": {
+                    "labels": [{"properties": {
+                        "color": {"solid": {"color": {"expr": {"Literal": {"Value": f"'{accent}'"}}}}},
                         "fontSize": {"expr": {"Literal": {"Value": "30D"}}},
                         "bold": {"expr": {"Literal": {"Value": "true"}}},
-                        "color": {"solid": {"color": {"expr": {"Literal": {"Value": f"'{accent}'"}}}}},
                     }}],
-                    "categoryLabel": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
+                    "categoryLabels": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
+                    "wordWrap": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
                 },
                 "vcObjects": {
                     "title": _vc_title(title, color="#605E5C", size="11D"),
