@@ -91,9 +91,7 @@ def _card(name, x, y, w, h, table, measure, accent, title, z=1):
                         "bold": {"expr": {"Literal": {"Value": "true"}}},
                         "color": {"solid": {"color": {"expr": {"Literal": {"Value": f"'{accent}'"}}}}},
                     }}],
-                    "categoryLabel": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}},
-                                                      "fontSize": {"expr": {"Literal": {"Value": "9D"}}},
-                                                      "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#8A8886'"}}}}}}}],
+                    "categoryLabel": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
                 },
                 "vcObjects": {
                     "title": _vc_title(title, color="#605E5C", size="11D"),
@@ -422,9 +420,9 @@ def build_report(state, config):
 
     def header(prefix, accent, title, subtitle):
         return [
-            _band(f"{prefix}_band", 0, 0, 1280, 72, accent),
-            _textbox(f"{prefix}_t", 28, 8, 1200, 34, title, "17pt", "#FFFFFF"),
-            _textbox(f"{prefix}_s", 28, 44, 1200, 24, subtitle, "10pt", "#F3F2F1"),
+            _band(f"{prefix}_band", 0, 0, 1280, 76, accent),
+            _textbox(f"{prefix}_t", 28, 6, 1200, 32, title, "17pt", "#FFFFFF"),
+            _textbox(f"{prefix}_s", 28, 40, 1200, 32, subtitle, "10pt", "#F3F2F1"),
         ]
 
     # Page 1 — Direction
