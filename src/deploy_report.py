@@ -422,9 +422,9 @@ def build_report(state, config):
 
     def header(prefix, accent, title, subtitle):
         return [
-            _band(f"{prefix}_band", 0, 0, 1280, 64, accent),
-            _textbox(f"{prefix}_t", 28, 12, 900, 30, title, "17pt", "#FFFFFF"),
-            _textbox(f"{prefix}_s", 28, 40, 900, 20, subtitle, "10pt", "#F3F2F1"),
+            _band(f"{prefix}_band", 0, 0, 1280, 72, accent),
+            _textbox(f"{prefix}_t", 28, 8, 1200, 34, title, "17pt", "#FFFFFF"),
+            _textbox(f"{prefix}_s", 28, 44, 1200, 24, subtitle, "10pt", "#F3F2F1"),
         ]
 
     # Page 1 — Direction
