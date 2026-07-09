@@ -1,0 +1,9 @@
+timestamp,gate_id,severity,message
+2026-06-23T18:00:00+00:00,GATE-05,ERR,Crowd control: security queue above 15 minutes at Aspen gate
+2026-06-23T19:30:00+00:00,GATE-05,INFO,Crowd control: queue back to nominal at Aspen gate
+2026-06-23T00:00:00+00:00,GATE-07,INFO,Gate counters polled
+2026-06-23T02:30:00+00:00,GATE-06,INFO,Gate counters polled
+2026-06-23T05:00:00+00:00,GATE-01,INFO,Gate counters polled
+2026-06-23T07:30:00+00:00,GATE-01,INFO,Gate counters polled
+2026-06-23T10:00:00+00:00,GATE-08,INFO,Gate counters polled
+2026-06-23T12:30:00+00:00,GATE-03,INFO,Gate counters polled

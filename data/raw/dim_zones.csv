@@ -1,0 +1,9 @@
+zone_id,name,edition_id,served_by_gate,room_type,surface_m2,capacity,is_premium,status
+ZONE-AUD,Grand Auditorium,AMGFL26,GATE-01,Auditorium,1200,2000,True,open
+ZONE-EXPO,Hall Expo,AMGFL26,GATE-02,Exhibition,3500,5000,False,open
+ZONE-STARTUP,Startup Alley,AMGFL26,GATE-03,Exhibition,900,1200,False,open
+ZONE-LAB,Workshop Labs,AMGFL26,GATE-04,Workshop,600,400,False,open
+ZONE-ASPEN,Salle Aspen,AMGFL26,GATE-05,Conference,450,600,True,open
+ZONE-BILAT,Bilaterales,AMGFL26,GATE-06,Business,300,120,False,open
+ZONE-FOOD,Food Court,AMGFL26,GATE-07,Catering,800,1000,False,open
+ZONE-VIP,VIP Lounge,AMGFL26,GATE-08,VIP,250,200,True,open

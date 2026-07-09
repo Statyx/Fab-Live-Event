@@ -1,0 +1,8 @@
+{
+  "name": "noa-presentation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NOA demo overview deck generator",
+  "scripts": { "build": "node build_deck.js" },
+  "dependencies": { "pptxgenjs": "^3.12.0" }
+}

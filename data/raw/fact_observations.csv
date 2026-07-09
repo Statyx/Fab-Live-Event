@@ -1,0 +1,11 @@
+observation_id,zone_id,category,severity,status,opened_at,comment
+OBS-0001,ZONE-ASPEN,Crowd,High,Open,2026-06-23T18:05:00+00:00,Dense crowd building at the entrance queue
+OBS-0002,ZONE-EXPO,Crowd,High,Closed,2026-06-23T10:00:00+00:00,Routine field observation
+OBS-0003,ZONE-LAB,Safety,Low,Resolved,2026-06-23T11:00:00+00:00,Routine field observation
+OBS-0004,ZONE-EXPO,Access,Low,Resolved,2026-06-23T12:00:00+00:00,Routine field observation
+OBS-0005,ZONE-FOOD,Crowd,Low,Open,2026-06-23T13:00:00+00:00,Routine field observation
+OBS-0006,ZONE-LAB,Safety,High,Resolved,2026-06-23T14:00:00+00:00,Routine field observation
+OBS-0007,ZONE-AUD,Access,Low,Resolved,2026-06-23T15:00:00+00:00,Routine field observation
+OBS-0008,ZONE-FOOD,Safety,Medium,Resolved,2026-06-23T16:00:00+00:00,Routine field observation
+OBS-0009,ZONE-ASPEN,Crowd,Low,Resolved,2026-06-23T17:00:00+00:00,Routine field observation
+OBS-0010,ZONE-FOOD,Cleanliness,Medium,Open,2026-06-23T18:00:00+00:00,Routine field observation

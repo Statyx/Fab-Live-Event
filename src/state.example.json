@@ -1,0 +1,16 @@
+{
+  "_comment": "Runtime deployment state. This file is generated/updated by the deploy_*.py scripts. Do NOT commit your real state.json (it is gitignored). This example shows the shape only.",
+  "workspace_id": "<filled by deploy_workspace.py>",
+  "lakehouse_id": "<filled by deploy_lakehouse.py>",
+  "lakehouse_sql_endpoint": "<filled by deploy_lakehouse.py>",
+  "notebook_setup_id": "<filled by deploy_setup_notebook.py>",
+  "eventhouse_id": "<filled by deploy_eventhouse.py>",
+  "kql_database_id": "<filled by deploy_eventhouse.py>",
+  "query_service_uri": "<filled by deploy_eventhouse.py>",
+  "ontology_id": "<filled by deploy_ontology.py>",
+  "graph_model_id": "<filled by deploy_graph.py>",
+  "kql_dashboard_id": "<filled by deploy_kql_dashboard.py>",
+  "reflex_id": "<filled by deploy_data_activator.py>",
+  "operations_agent_id": "<filled by deploy_operations_agent.py>",
+  "data_agent_id": "<filled by deploy_data_agent.py>"
+}

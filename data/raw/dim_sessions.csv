@@ -1,0 +1,8 @@
+session_id,zone_id,name,capacity,track,sponsor_id
+SES-AIGOOD,ZONE-ASPEN,AI for Good,600,Impact,CUST-001
+SES-BEAUTY,ZONE-ASPEN,Beauty & AI,600,Retail,CUST-002
+SES-CITY,ZONE-ASPEN,Smart City 2030,600,Public,CUST-006
+SES-KEYNOTE,ZONE-AUD,Opening Keynote,2000,Keynote,CUST-001
+SES-SPORT,ZONE-LAB,Sport & Data,400,Retail,CUST-003
+SES-FINANCE,ZONE-BILAT,FinTech Frontiers,120,Finance,CUST-004
+SES-PITCH,ZONE-STARTUP,Startup Pitch Battle,1200,Startup,CUST-005

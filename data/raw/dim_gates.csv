@@ -1,0 +1,9 @@
+gate_id,edition_id,gate_type,vendor,model,role
+GATE-01,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry
+GATE-02,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry
+GATE-03,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry
+GATE-04,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry
+GATE-05,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry
+GATE-06,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry
+GATE-07,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry
+GATE-08,AMGFL26,Turnstile,Kudelski,SmartGate-X,Entry

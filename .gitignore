@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Scratch / logs (terminal capture files used during deploys)
+*.log
+_*.log
+_*.txt
+_*.py
+_*.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Environment-specific — contain tenant / workspace / item IDs. Use the *.example files as templates.
+src/config.yaml
+src/state.json
+.vscode/mcp.json
+
+# (The *.example files ARE committed: src/config.example.yaml, src/state.example.json, .vscode/mcp.example.json)

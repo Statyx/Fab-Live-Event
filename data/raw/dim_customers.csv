@@ -1,0 +1,7 @@
+customer_id,name,segment,vip_flag
+CUST-001,Microsoft,Tech,True
+CUST-002,L'Oreal,Beauty,True
+CUST-003,Decathlon,Retail,False
+CUST-004,BNP Paribas,Finance,False
+CUST-005,GreenTech Startup,Startup,False
+CUST-006,Ville de Paris,Public,True

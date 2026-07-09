@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "fabric-ontology-lec": {
+      "type": "http",
+      "url": "https://api.fabric.microsoft.com/v1/mcp/dataPlane/workspaces/<WORKSPACE_ID>/items/<ONTOLOGY_ID>/ontologyEndpoint"
+    }
+  }
+}

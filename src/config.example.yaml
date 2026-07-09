@@ -1,0 +1,95 @@
+# Live Event Center — Configuration (EXAMPLE)
+# LEC demo: Fabric Graph + Ontology + Operations Agent over live event-operations data.
+# Copy this file to config.yaml and fill in your own capacity_id and tenant_id.
+
+workspace_name: "Live Event Center"
+capacity_id: "<YOUR_FABRIC_CAPACITY_ID>"               # GUID of your Fabric (F-SKU) capacity
+fabric_api_base: "https://api.fabric.microsoft.com/v1"
+tenant_id: "<YOUR_TENANT_ID>"                          # your Entra tenant GUID
+# az_subscription: "<YOUR_AZ_SUBSCRIPTION_NAME>"       # optional: deploy_all.py runs `az account set` with this
+
+# ── Items ────────────────────────────────────────────────────────
+lakehouse_name: "LH_Event_Topology"
+eventhouse_name: "EH_Event_Telemetry"
+kql_db_name: "EventTelemetry"
+ontology_name: "ONT_Event_KnowledgeGraph"
+data_activator_name: "RX_Event_Alerts"
+operations_agent_name: "Event_Operations_Agent"
+report_name: "RPT_Event_Ops"
+
+culprit_gate: "GATE-05"
+
+kql_tables:
+  telemetry_kpi:
+    name: telemetry_kpi
+    columns:
+      - { name: timestamp,   type: datetime }
+      - { name: zone_id,     type: string }
+      - { name: gate_id,     type: string }
+      - { name: kpi_name,    type: string }
+      - { name: value,       type: real }
+  telemetry_queue:
+    name: telemetry_queue
+    columns:
+      - { name: timestamp,     type: datetime }
+      - { name: gate_id,       type: string }
+      - { name: zone_id,       type: string }
+      - { name: wait_time_s,   type: real }
+      - { name: in_count,      type: long }
+      - { name: out_count,     type: long }
+  alarms:
+    name: alarms
+    columns:
+      - { name: timestamp,   type: datetime }
+      - { name: gate_id,     type: string }
+      - { name: alarm_type,  type: string }
+      - { name: severity,    type: string }
+      - { name: state,       type: string }
+  event_logs:
+    name: event_logs
+    columns:
+      - { name: timestamp,   type: datetime }
+      - { name: gate_id,     type: string }
+      - { name: severity,    type: string }
+      - { name: message,     type: string }
+
+telemetry:
+  window_hours: 24
+  interval_min: 15
+  storm_start_min: 1080
+  storm_duration_min: 90
+  kpi_names: ["occupancy_pct", "people_count", "density_index", "utilization_m2_pct", "comfort_index"]
+
+edition:
+  id: "AMGFL26"
+  name: "AutoMobility & AI Global Forum 2026"
+  venue: "Paris Expo — Porte de Versailles"
+  city: "Paris"
+  edition_type: "Flagship"
+
+zones:
+  - { id: "ZONE-AUD",     name: "Grand Auditorium", room_type: "Auditorium",  surface_m2: 1200, capacity: 2000, premium: true }
+  - { id: "ZONE-EXPO",    name: "Hall Expo",        room_type: "Exhibition",  surface_m2: 3500, capacity: 5000, premium: false }
+  - { id: "ZONE-STARTUP", name: "Startup Alley",    room_type: "Exhibition",  surface_m2: 900,  capacity: 1200, premium: false }
+  - { id: "ZONE-LAB",     name: "Workshop Labs",    room_type: "Workshop",    surface_m2: 600,  capacity: 400,  premium: false }
+  - { id: "ZONE-ASPEN",   name: "Salle Aspen",      room_type: "Conference",  surface_m2: 450,  capacity: 600,  premium: true }
+  - { id: "ZONE-BILAT",   name: "Bilaterales",      room_type: "Business",    surface_m2: 300,  capacity: 120,  premium: false }
+  - { id: "ZONE-FOOD",    name: "Food Court",       room_type: "Catering",    surface_m2: 800,  capacity: 1000, premium: false }
+  - { id: "ZONE-VIP",     name: "VIP Lounge",       room_type: "VIP",         surface_m2: 250,  capacity: 200,  premium: true }
+
+customers:
+  - { id: "CUST-001", name: "Microsoft",         segment: "Tech",    vip: true }
+  - { id: "CUST-002", name: "L'Oreal",           segment: "Beauty",  vip: true }
+  - { id: "CUST-003", name: "Decathlon",         segment: "Retail",  vip: false }
+  - { id: "CUST-004", name: "BNP Paribas",       segment: "Finance", vip: false }
+  - { id: "CUST-005", name: "GreenTech Startup", segment: "Startup", vip: false }
+  - { id: "CUST-006", name: "Ville de Paris",    segment: "Public",  vip: true }
+
+sessions:
+  - { id: "SES-AIGOOD",  name: "AI for Good",           zone_id: "ZONE-ASPEN",   capacity: 600,  track: "Impact",   sponsor_id: "CUST-001" }
+  - { id: "SES-BEAUTY",  name: "Beauty & AI",           zone_id: "ZONE-ASPEN",   capacity: 600,  track: "Retail",   sponsor_id: "CUST-002" }
+  - { id: "SES-CITY",    name: "Smart City 2030",       zone_id: "ZONE-ASPEN",   capacity: 600,  track: "Public",   sponsor_id: "CUST-006" }
+  - { id: "SES-KEYNOTE", name: "Opening Keynote",       zone_id: "ZONE-AUD",     capacity: 2000, track: "Keynote",  sponsor_id: "CUST-001" }
+  - { id: "SES-SPORT",   name: "Sport & Data",          zone_id: "ZONE-LAB",     capacity: 400,  track: "Retail",   sponsor_id: "CUST-003" }
+  - { id: "SES-FINANCE", name: "FinTech Frontiers",     zone_id: "ZONE-BILAT",   capacity: 120,  track: "Finance",  sponsor_id: "CUST-004" }
+  - { id: "SES-PITCH",   name: "Startup Pitch Battle",  zone_id: "ZONE-STARTUP", capacity: 1200, track: "Startup",  sponsor_id: "CUST-005" }
