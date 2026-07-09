@@ -7,6 +7,9 @@ venv/
 .ipynb_checkpoints/
 .pytest_cache/
 
+# Node (presentation/)
+node_modules/
+
 # Scratch / logs (terminal capture files used during deploys)
 *.log
 _*.log

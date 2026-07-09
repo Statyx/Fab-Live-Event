@@ -327,14 +327,18 @@ def _line(name, x, y, w, h, axis_table, axis_col, val_table, measure, title, col
 
 def _textbox(name, x, y, w, h, text, font_size="16pt", color="#252423"):
     return {
-        "x": x, "y": y, "z": 0, "width": w, "height": h,
+        "x": x, "y": y, "z": 1, "width": w, "height": h,
         "config": json.dumps({
-            "name": name, "layouts": [{"id": 0, "position": {"x": x, "y": y, "z": 0, "width": w, "height": h}}],
+            "name": name, "layouts": [{"id": 0, "position": {"x": x, "y": y, "z": 1, "width": w, "height": h}}],
             "singleVisual": {"visualType": "textbox", "objects": {"general": [{"properties": {
                 "paragraphs": [{"textRuns": [{"value": text, "textStyle": {
                     "fontFamily": "Segoe UI Semibold", "fontWeight": "bold",
                     "fontSize": font_size, "color": color}}],
-                    "horizontalTextAlignment": "left"}]}}]}},
+                    "horizontalTextAlignment": "left"}]}}]},
+                "vcObjects": {
+                    "background": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
+                    "border": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
+                }},
         }), "filters": "[]",
     }
 
@@ -411,25 +415,28 @@ def build_report(state, config):
     sm_id = state["semantic_model_id"]
     theme = "CY26SU02"
 
-    VIOLET, BLUE, GREEN, GOLD = "#6B4FBB", "#0F6CBD", "#0E7A4B", "#C19A1E"
+    # Accessible custom-theme palette (see "Custom reusable Power BI theme" deck):
+    # 4 dark brand colors with AAA/AA white-text contrast → persona header bands.
+    C_BLUE, C_TEAL, C_GOLD, C_RED = "#00008F", "#027180", "#896610", "#863C41"
+    NEUTRAL, ALERT, GOOD, PREMIUM = "#252423", "#863C41", "#027180", "#896610"
 
     def header(prefix, accent, title, subtitle):
         return [
             _band(f"{prefix}_band", 0, 0, 1280, 64, accent),
             _textbox(f"{prefix}_t", 28, 12, 900, 30, title, "17pt", "#FFFFFF"),
-            _textbox(f"{prefix}_s", 28, 40, 900, 20, subtitle, "10pt", "#EDEBFF"),
+            _textbox(f"{prefix}_s", 28, 40, 900, 20, subtitle, "10pt", "#F3F2F1"),
         ]
 
     # Page 1 — Direction
-    p1 = header("d", VIOLET, "Live Event Center — Pilotage Direction",
+    p1 = header("d", C_BLUE, "Live Event Center — Pilotage Direction",
                 "AMGFL26 · vue consolidée de la journée · occupation, fréquentation, saturation") + [
-        _card("c1", 28, 78, 238, 112, "telemetry_kpi", "Peak Attendees", VIOLET, "Fréquentation Max"),
-        _card("c2", 278, 78, 238, 112, "telemetry_kpi", "Avg Occupancy %", VIOLET, "Occupation Moyenne"),
-        _card("c3", 528, 78, 238, 112, "telemetry_kpi", "Saturated Zones (>90%)", "#C0392B", "Zones Saturées"),
-        _card("c4", 778, 78, 238, 112, "telemetry_queue", "Peak Wait (min)", "#C0392B", "Attente Max (min)"),
-        _card("c5", 1028, 78, 224, 112, "dim_customers", "VIP Sponsors", GOLD, "Sponsors VIP"),
+        _card("c1", 28, 78, 238, 112, "telemetry_kpi", "Peak Attendees", NEUTRAL, "Fréquentation Max"),
+        _card("c2", 278, 78, 238, 112, "telemetry_kpi", "Avg Occupancy %", NEUTRAL, "Occupation Moyenne"),
+        _card("c3", 528, 78, 238, 112, "telemetry_kpi", "Saturated Zones (>90%)", ALERT, "Zones Saturées"),
+        _card("c4", 778, 78, 238, 112, "telemetry_queue", "Peak Wait (min)", ALERT, "Attente Max (min)"),
+        _card("c5", 1028, 78, 224, 112, "dim_customers", "VIP Sponsors", PREMIUM, "Sponsors VIP"),
         _line("l1", 28, 202, 760, 248, "telemetry_kpi", "timestamp", "telemetry_kpi", "Peak Occupancy %",
-              "Occupation Max dans le Temps (pic de saturation)", color=VIOLET),
+              "Occupation Max dans le Temps (pic de saturation)", color=C_BLUE),
         _donut("dn1", 800, 202, 452, 248, "dim_zones", "name", "telemetry_kpi", "Peak Attendees",
                "Répartition de la Fréquentation par Zone"),
         _bar("b1", 28, 462, 1224, 246, "dim_gates", "gate_id", "telemetry_queue", "Peak Wait (min)",
@@ -437,15 +444,15 @@ def build_report(state, config):
     ]
 
     # Page 2 — Production
-    p2 = header("p", BLUE, "Exploitation — Production Temps Réel",
+    p2 = header("p", C_TEAL, "Exploitation — Production Temps Réel",
                 "Files d'attente, densité de foule, flux d'entrées, alertes terrain") + [
-        _card("c6", 28, 78, 238, 112, "telemetry_queue", "Peak Wait (min)", "#C0392B", "Attente Max (min)"),
-        _card("c7", 278, 78, 238, 112, "telemetry_queue", "Gates in Congestion (>10 min)", "#C0392B", "Portes Congestionnées"),
-        _card("c8", 528, 78, 238, 112, "telemetry_kpi", "Peak Density Index", BLUE, "Densité Max"),
-        _card("c9", 778, 78, 238, 112, "telemetry_queue", "Net Flow", BLUE, "Flux Net"),
-        _card("c10", 1028, 78, 224, 112, "fact_observations", "High-Severity Observations", "#C0392B", "Alertes Critiques"),
+        _card("c6", 28, 78, 238, 112, "telemetry_queue", "Peak Wait (min)", ALERT, "Attente Max (min)"),
+        _card("c7", 278, 78, 238, 112, "telemetry_queue", "Gates in Congestion (>10 min)", ALERT, "Portes Congestionnées"),
+        _card("c8", 528, 78, 238, 112, "telemetry_kpi", "Peak Density Index", NEUTRAL, "Densité Max"),
+        _card("c9", 778, 78, 238, 112, "telemetry_queue", "Net Flow", GOOD, "Flux Net"),
+        _card("c10", 1028, 78, 224, 112, "fact_observations", "High-Severity Observations", ALERT, "Alertes Critiques"),
         _line("l2", 28, 202, 760, 248, "telemetry_queue", "timestamp", "telemetry_queue", "Avg Wait (min)",
-              "Temps d'Attente Moyen dans le Temps (montée de la file)", color=BLUE),
+              "Temps d'Attente Moyen dans le Temps (montée de la file)", color=C_TEAL),
         _bar("b2", 800, 202, 452, 248, "dim_gates", "gate_id", "telemetry_queue", "Peak Wait (min)",
              "File Max par Porte", labels=False),
         _column("col1", 28, 462, 1224, 246, "dim_zones", "name", "telemetry_kpi", "Peak Density Index",
@@ -453,13 +460,13 @@ def build_report(state, config):
     ]
 
     # Page 3 — Chefs de projet
-    p3 = header("g", GREEN, "Sessions & Confort — Chefs de Projet",
+    p3 = header("g", C_GOLD, "Sessions & Confort — Chefs de Projet",
                 "Confort ressenti, utilisation des m², observations terrain par catégorie & sévérité") + [
-        _card("c11", 28, 78, 238, 112, "telemetry_kpi", "Avg Comfort Index", GREEN, "Confort Moyen"),
-        _card("c12", 278, 78, 238, 112, "telemetry_kpi", "Min Comfort Index", "#C0392B", "Confort Min"),
-        _card("c13", 528, 78, 238, 112, "telemetry_kpi", "Avg m² Utilization %", GREEN, "Utilisation m²"),
-        _card("c14", 778, 78, 238, 112, "dim_sessions", "Total Sessions", GREEN, "Sessions"),
-        _card("c15", 1028, 78, 224, 112, "fact_observations", "Open Observations", GOLD, "Obs. Ouvertes"),
+        _card("c11", 28, 78, 238, 112, "telemetry_kpi", "Avg Comfort Index", GOOD, "Confort Moyen"),
+        _card("c12", 278, 78, 238, 112, "telemetry_kpi", "Min Comfort Index", ALERT, "Confort Min"),
+        _card("c13", 528, 78, 238, 112, "telemetry_kpi", "Avg m² Utilization %", NEUTRAL, "Utilisation m²"),
+        _card("c14", 778, 78, 238, 112, "dim_sessions", "Total Sessions", NEUTRAL, "Sessions"),
+        _card("c15", 1028, 78, 224, 112, "fact_observations", "Open Observations", PREMIUM, "Obs. Ouvertes"),
         _bar("b3", 28, 202, 760, 248, "dim_zones", "name", "telemetry_kpi", "Avg Comfort Index",
              "Confort Moyen par Zone (Salle Aspen la plus basse)"),
         _donut("dn2", 800, 202, 452, 248, "fact_observations", "severity", "fact_observations", "Total Observations",
@@ -471,13 +478,13 @@ def build_report(state, config):
     ]
 
     # Page 4 — Client
-    p4 = header("k", GOLD, "Sponsors & Zones Premium — Client",
+    p4 = header("k", C_RED, "Sponsors & Zones Premium — Client",
                 "Zones premium, partenariats, sponsors VIP et occupation des salles sponsorisées") + [
-        _card("c16", 28, 78, 238, 112, "dim_zones", "Premium Zones", GOLD, "Zones Premium"),
-        _card("c17", 278, 78, 238, 112, "dim_sponsorships", "Total Sponsorships", GOLD, "Partenariats"),
-        _card("c18", 528, 78, 238, 112, "dim_customers", "VIP Sponsors", GOLD, "Sponsors VIP"),
-        _card("c19", 778, 78, 238, 112, "telemetry_kpi", "Peak Occupancy %", "#C0392B", "Occupation Max"),
-        _card("c20", 1028, 78, 224, 112, "telemetry_kpi", "Avg Comfort Index", GREEN, "Confort Moyen"),
+        _card("c16", 28, 78, 238, 112, "dim_zones", "Premium Zones", PREMIUM, "Zones Premium"),
+        _card("c17", 278, 78, 238, 112, "dim_sponsorships", "Total Sponsorships", PREMIUM, "Partenariats"),
+        _card("c18", 528, 78, 238, 112, "dim_customers", "VIP Sponsors", PREMIUM, "Sponsors VIP"),
+        _card("c19", 778, 78, 238, 112, "telemetry_kpi", "Peak Occupancy %", ALERT, "Occupation Max"),
+        _card("c20", 1028, 78, 224, 112, "telemetry_kpi", "Avg Comfort Index", GOOD, "Confort Moyen"),
         _bar("b6", 28, 202, 760, 248, "dim_zones", "name", "telemetry_kpi", "Peak Occupancy %",
              "Occupation Max par Zone (Salle Aspen en tête)"),
         _donut("dn3", 800, 202, 452, 248, "dim_sponsorships", "package_tier", "dim_sponsorships", "Total Sponsorships",
@@ -498,19 +505,30 @@ def build_report(state, config):
                      "useStylableVisualContainerHeader": True, "exportDataMode": 1},
     }
 
+    def _page_cfg(name):
+        # Light-gray canvas + outspace so white visuals "pop" (Fluent-2 look).
+        grey = "'#F5F4F2'"
+        obj = {"background": [{"properties": {
+                    "color": {"solid": {"color": {"expr": {"Literal": {"Value": grey}}}}},
+                    "transparency": {"expr": {"Literal": {"Value": "0D"}}}}}],
+               "outspace": [{"properties": {
+                    "color": {"solid": {"color": {"expr": {"Literal": {"Value": grey}}}}},
+                    "transparency": {"expr": {"Literal": {"Value": "0D"}}}}}]}
+        return json.dumps({"name": name, "objects": obj})
+
     report = {
         "config": json.dumps(report_config), "layoutOptimization": 0,
         "resourcePackages": [{"resourcePackage": {"name": "SharedResources", "type": 2,
                               "items": [{"type": 202, "path": f"BaseThemes/{theme}.json", "name": theme}], "disabled": False}}],
         "sections": [
             {"name": "Direction", "displayName": "Direction", "displayOption": 1, "width": 1280, "height": 720,
-             "config": json.dumps({"name": "Direction"}), "filters": "[]", "visualContainers": p1},
+             "config": _page_cfg("Direction"), "filters": "[]", "visualContainers": p1},
             {"name": "Production", "displayName": "Production", "displayOption": 1, "width": 1280, "height": 720,
-             "config": json.dumps({"name": "Production"}), "filters": "[]", "visualContainers": p2},
+             "config": _page_cfg("Production"), "filters": "[]", "visualContainers": p2},
             {"name": "ChefsProjet", "displayName": "Chefs de Projet", "displayOption": 1, "width": 1280, "height": 720,
-             "config": json.dumps({"name": "ChefsProjet"}), "filters": "[]", "visualContainers": p3},
+             "config": _page_cfg("ChefsProjet"), "filters": "[]", "visualContainers": p3},
             {"name": "Client", "displayName": "Client", "displayOption": 1, "width": 1280, "height": 720,
-             "config": json.dumps({"name": "Client"}), "filters": "[]", "visualContainers": p4},
+             "config": _page_cfg("Client"), "filters": "[]", "visualContainers": p4},
         ],
         "theme": theme,
     }
@@ -519,18 +537,24 @@ def build_report(state, config):
                 f"initial catalog={sm_name};integrated security=ClaimsToken;semanticmodelid={sm_id}")
     pbir = {"$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
             "version": "4.0", "datasetReference": {"byConnection": {"connectionString": conn_str}}}
-    # 8-color qualitative palette so each category slice/bar gets a distinct hue.
-    base_theme = {"name": theme, "version": "5.70", "type": 2,
-                  "dataColors": ["#6B4FBB", "#0F6CBD", "#0E7A4B", "#C19A1E", "#C0392B",
-                                 "#E066A6", "#00A0B0", "#8764B8", "#D97706", "#4B6584"],
-                  "background": "#FFFFFF", "foreground": "#252423", "tableAccent": "#6B4FBB",
-                  "good": "#0E7A4B", "bad": "#C0392B", "neutral": "#C19A1E", "maximum": "#6B4FBB", "minimum": "#EFE6FB",
-                  "textClasses": {
-                      "callout": {"fontSize": 30, "fontFace": "Segoe UI Semibold", "color": "#252423"},
-                      "title": {"fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#252423"},
-                      "header": {"fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#252423"},
-                      "label": {"fontSize": 10, "fontFace": "Segoe UI", "color": "#605E5C"},
-                  }}
+
+    # ── Reusable accessible theme (from the "Custom reusable Power BI theme" deck) ──
+    # Single source of truth: theme/Accessible_Fluent2_Theme.json (WCAG-checked,
+    # colorblind-distinguishable palette + visualStyles for the Fluent-2 look).
+    # Falls back to an inline copy if the file is missing.
+    theme_file = Path(__file__).parent.parent / "theme" / "Accessible_Fluent2_Theme.json"
+    if theme_file.exists():
+        base_theme = json.loads(theme_file.read_text(encoding="utf-8"))
+    else:
+        base_theme = {
+            "dataColors": ["#863C41", "#F6B6C8", "#896610", "#E6E689",
+                           "#027180", "#86E2EE", "#00008F", "#B2CEEC"],
+            "foreground": "#252423", "background": "#FFFFFF", "tableAccent": "#027180",
+            "good": "#58C645", "neutral": "#FDCC39", "bad": "#FF4E56",
+        }
+    base_theme.pop("$schema", None)
+    base_theme["name"] = theme          # must match resourcePackages + themeCollection
+    base_theme.setdefault("version", "5.70")
     return report, pbir, base_theme, theme
 
 

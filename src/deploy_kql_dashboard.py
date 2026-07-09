@@ -60,9 +60,43 @@ def _viz(title, query, vtype, x, y, w, h, page, ds, series=False):
             "visualOptions": vo, "usedParamVariables": []}
 
 
+def _map(title, query, x, y, w, h, page, ds, size_col="density", label_col="zone_name"):
+    """Geospatial bubble map tile (Real-Time Dashboard 'map' visual).
+    Query MUST return 'latitude' + 'longitude' columns; bubbles are sized by size_col."""
+    return {"id": _id(), "title": title, "query": query,
+            "layout": {"x": x, "y": y, "width": w, "height": h},
+            "pageId": page, "dataSourceId": ds, "visualType": "map",
+            "visualOptions": {
+                "map__type": "bubble",
+                "map__latitudeColumn": "latitude",
+                "map__longitudeColumn": "longitude",
+                "map__sizeColumn": size_col,
+                "map__labelColumn": label_col,
+                "hideTileTitle": False,
+            },
+            "usedParamVariables": []}
+
+
+# Zone floor-plan coordinates at the venue (Paris Expo — Porte de Versailles),
+# laid out as a grid so Salle Aspen (the culprit zone) sits centrally. Injected inline
+# so the map tile is self-contained (no extra Lakehouse/geo table needed).
+ZONE_GEO = """let zone_geo = datatable(zone_id:string, latitude:real, longitude:real, zone_name:string)[
+    "ZONE-AUD",     48.8331, 2.2866, "Grand Auditorium",
+    "ZONE-EXPO",    48.8329, 2.2887, "Hall Expo",
+    "ZONE-STARTUP", 48.8320, 2.2864, "Startup Alley",
+    "ZONE-LAB",     48.8317, 2.2885, "Workshop Labs",
+    "ZONE-ASPEN",   48.8324, 2.2876, "Salle Aspen",
+    "ZONE-BILAT",   48.8316, 2.2873, "Bilaterales",
+    "ZONE-FOOD",    48.8333, 2.2882, "Food Court",
+    "ZONE-VIP",     48.8335, 2.2870, "VIP Lounge",
+];
+"""
+
+
 def build_dashboard_json(cfg, state):
     ds_id = _id()
     pM, pP, pC, pK = _id(), _id(), _id(), _id()
+    pG = _id()  # Carte & Chaleur (geospatial)
     cluster = state["query_service_uri"]; db = cfg["eventhouse_name"]
     data_source = {"id": ds_id, "name": db, "clusterUri": cluster, "database": db,
                    "kind": "manual-kusto", "scopeId": "KustoDatabaseResource"}
@@ -131,13 +165,43 @@ def build_dashboard_json(cfg, state):
              "bar", 0, 13, 24, 8, pK, ds_id),
     ]
 
+    # ── Page 5: CARTE & CHALEUR (geospatial heat) ────────────────
+    _heat_q = (ZONE_GEO +
+               "telemetry_kpi\n"
+               "| where kpi_name in ('people_count', 'occupancy_pct', 'density_index')\n"
+               "| summarize v = max(value) by zone_id, kpi_name\n"
+               "| evaluate pivot(kpi_name, any(v))\n"
+               "| join kind=inner zone_geo on zone_id\n"
+               "| project zone_name, latitude, longitude,\n"
+               "          people = round(people_count, 0),\n"
+               "          occupancy = round(occupancy_pct, 1),\n"
+               "          density = round(density_index, 2)\n"
+               "| order by density desc")
+    tiles += [
+        _map("Carte de chaleur des zones (taille = densité de foule, pic de la journée)",
+             _heat_q, 0, 0, 16, 13, pG, ds_id),
+        _viz("Densité de foule max par zone (people/m²)",
+             "telemetry_kpi\n| where kpi_name == 'density_index'\n| summarize MaxDensity = round(max(value), 2) by zone_id\n| top 10 by MaxDensity desc",
+             "bar", 16, 0, 8, 13, pG, ds_id),
+        _stat("Zone la plus chaude",
+              "telemetry_kpi\n| where kpi_name == 'density_index'\n| summarize d = max(value) by zone_id\n| top 1 by d desc\n| project zone_id",
+              0, 13, 8, 5, pG, ds_id),
+        _stat("Densité max (people/m²)",
+              "telemetry_kpi\n| where kpi_name == 'density_index'\n| summarize round(max(value), 2)",
+              8, 13, 8, 5, pG, ds_id),
+        _stat("Salle Aspen — occupation max %",
+              "telemetry_kpi\n| where kpi_name == 'occupancy_pct' and zone_id == 'ZONE-ASPEN'\n| summarize round(max(value), 1)",
+              16, 13, 8, 5, pG, ds_id),
+    ]
+
     return {
         "$schema": "https://dataexplorer.azure.com/static/d/schema/20/dashboard.json",
         "schema_version": "20", "title": DASHBOARD_NAME,
         "autoRefresh": {"enabled": True, "defaultInterval": "30s", "minInterval": "30s"},
         "dataSources": [data_source],
         "pages": [{"id": pM, "name": "Management"}, {"id": pP, "name": "Production"},
-                  {"id": pC, "name": "Chefs de projet"}, {"id": pK, "name": "Client"}],
+                  {"id": pC, "name": "Chefs de projet"}, {"id": pK, "name": "Client"},
+                  {"id": pG, "name": "Carte & Chaleur"}],
         "tiles": tiles, "parameters": [],
     }
 

@@ -53,9 +53,9 @@ STEPS = [
     ("kql_dashboard",          "deploy_kql_dashboard"),
     ("data_activator",         "deploy_data_activator"),
     ("operations_agent",       "deploy_operations_agent"),
-    ("data_agent",             "deploy_data_agent"),
     ("kql_shortcuts",          "deploy_kql_shortcuts"),
     ("semantic_model",         "deploy_semantic_model"),
+    ("data_agent",             "deploy_data_agent"),
     ("report",                 "deploy_report"),
 ]
 STEP_NAMES = [name for name, _ in STEPS]

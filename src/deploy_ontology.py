@@ -70,9 +70,12 @@ RELATIONSHIPS = [
     ("ObservationInZone",    "Observation", "Zone",     "fact_observations", ["observation_id"], ["zone_id"]),
 ]
 
-# TimeSeries bindings: bind live Eventhouse/KQL telemetry onto topology entities so the
-# ontology unifies NonTimeSeries (topology) + TimeSeries (telemetry) in one semantic layer.
-# name -> (kql_table, timestamp_col, entity_key_col, [(metric_col, valueType), ...])
+# TimeSeries bindings: bind live telemetry onto topology entities so the ontology unifies
+# NonTimeSeries (topology) + TimeSeries (telemetry) in one semantic layer.
+# Source = the Lakehouse shortcut tables (telemetry_kpi / telemetry_queue), which OneLake-mirror
+# the Eventhouse KQL via the mirroring policy (deploy_kql_shortcuts.py). Lakehouse-backed
+# TimeSeries resolves reliably through the graph (Fabric IQ) — a live KustoTable source did not.
+# name -> (lakehouse_table, timestamp_col, entity_key_col, [(metric_col, valueType), ...])
 TIMESERIES = {
     "Zone": ("telemetry_kpi",   "timestamp", "zone_id",
              [("kpi_name", "String"), ("value", "Double")]),
@@ -136,9 +139,9 @@ def build_parts(workspace_id, lakehouse_id, ontology_name, kql_db_id, cluster_ur
             ts_binding = {"id": ts_guid, "dataBindingConfiguration": {
                 "dataBindingType": "TimeSeries", "timestampColumnName": ts_col,
                 "propertyBindings": pbinds,
-                "sourceTableProperties": {"sourceType": "KustoTable", "workspaceId": workspace_id,
-                                          "itemId": kql_db_id, "clusterUri": cluster_uri,
-                                          "databaseName": kql_db_name, "sourceTableName": kql_table}}}
+                "sourceTableProperties": {"sourceType": "LakehouseTable", "workspaceId": workspace_id,
+                                          "itemId": lakehouse_id, "sourceTableName": kql_table,
+                                          "sourceSchema": "dbo"}}}
             ts_binding_part = {"path": f"EntityTypes/{eid}/DataBindings/{ts_guid}.json",
                                "payload": b64(ts_binding), "payloadType": "InlineBase64"}
         entity_def = {
