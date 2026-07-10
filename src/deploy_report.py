@@ -75,8 +75,8 @@ def _card(name, x, y, w, h, table, measure, accent, title, z=1):
         "config": json.dumps({
             "name": name, "layouts": [{"id": 0, "position": {"x": x, "y": y, "z": z, "width": w, "height": h}}],
             "singleVisual": {
-                "visualType": "card",
-                "projections": {"Values": [{"queryRef": f"{table}.{measure}"}]},
+                "visualType": "cardVisual",
+                "projections": {"Data": [{"queryRef": f"{table}.{measure}"}]},
                 "prototypeQuery": {
                     "Version": 2,
                     "From": [{"Name": alias, "Entity": table, "Type": 0}],
@@ -85,13 +85,15 @@ def _card(name, x, y, w, h, table, measure, accent, title, z=1):
                 },
                 "drillFilterOtherVisuals": True,
                 "objects": {
-                    "labels": [{"properties": {
-                        "color": {"solid": {"color": {"expr": {"Literal": {"Value": f"'{accent}'"}}}}},
+                    "outline": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
+                    "calloutValue": [{"properties": {
                         "fontSize": {"expr": {"Literal": {"Value": "30D"}}},
                         "bold": {"expr": {"Literal": {"Value": "true"}}},
+                        "color": {"solid": {"color": {"expr": {"Literal": {"Value": f"'{accent}'"}}}}},
                     }}],
-                    "categoryLabels": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
-                    "wordWrap": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
+                    "categoryLabel": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}},
+                                                      "fontSize": {"expr": {"Literal": {"Value": "9D"}}},
+                                                      "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#8A8886'"}}}}}}}],
                 },
                 "vcObjects": {
                     "title": _vc_title(title, color="#605E5C", size="11D"),
@@ -341,55 +343,21 @@ def _textbox(name, x, y, w, h, text, font_size="16pt", color="#252423"):
     }
 
 
-def _title_block(name, x, y, w, h, title, subtitle):
-    """Single transparent textbox holding title + subtitle (2 paragraphs).
-    Generous height so Power BI never adds a vertical scrollbar."""
-    return {
-        "x": x, "y": y, "z": 1, "width": w, "height": h,
-        "config": json.dumps({
-            "name": name, "layouts": [{"id": 0, "position": {"x": x, "y": y, "z": 1, "width": w, "height": h}}],
-            "singleVisual": {"visualType": "textbox", "objects": {"general": [{"properties": {
-                "paragraphs": [
-                    {"textRuns": [{"value": title, "textStyle": {
-                        "fontFamily": "Segoe UI Semibold", "fontWeight": "bold",
-                        "fontSize": "17pt", "color": "#FFFFFF"}}],
-                     "horizontalTextAlignment": "left"},
-                    {"textRuns": [{"value": subtitle, "textStyle": {
-                        "fontFamily": "Segoe UI", "fontSize": "10pt", "color": "#F3F2F1"}}],
-                     "horizontalTextAlignment": "left"},
-                ]}}]},
-                "vcObjects": {
-                    "background": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
-                    "border": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
-                }},
-        }), "filters": "[]",
-    }
-
-
 def _table(name, x, y, w, h, items, title, z=1):
-    """Table visual. items = [(table, prop, 'Column'|'Measure'[, caption]), ...].
-    caption (optional 4th element) sets the column header AND a unique native
-    reference name — required when two columns share a property name (e.g. 'name')."""
-    tables = list(dict.fromkeys(t for t, *_ in items))
+    """Table visual. items = [(table, prop, 'Column'|'Measure'), ...]"""
+    tables = list(dict.fromkeys(t for t, _, _ in items))
     aliases = {t: chr(ord('a') + i) for i, t in enumerate(tables)}
     froms = [{"Name": aliases[t], "Entity": t, "Type": 0} for t in tables]
-    proj = {"Values": [{"queryRef": f"{t}.{p}"} for t, p, *_ in items]}
+    proj = {"Values": [{"queryRef": f"{t}.{p}"} for t, p, _ in items]}
     selects = []
-    used = set()
-    for it in items:
-        t, p, tp = it[0], it[1], it[2]
-        nref = it[3] if len(it) > 3 else p
-        base, k = nref, 2
-        while nref in used:
-            nref = f"{base} {k}"; k += 1
-        used.add(nref)
+    for t, p, tp in items:
         a = aliases[t]
         if tp == "Column":
             selects.append({"Column": {"Expression": {"SourceRef": {"Source": a}}, "Property": p},
-                            "Name": f"{t}.{p}", "NativeReferenceName": nref})
+                            "Name": f"{t}.{p}", "NativeReferenceName": p})
         else:
             selects.append({"Measure": {"Expression": {"SourceRef": {"Source": a}}, "Property": p},
-                            "Name": f"{t}.{p}", "NativeReferenceName": nref})
+                            "Name": f"{t}.{p}", "NativeReferenceName": p})
     return {
         "x": x, "y": y, "z": z, "width": w, "height": h,
         "config": json.dumps({
@@ -454,8 +422,9 @@ def build_report(state, config):
 
     def header(prefix, accent, title, subtitle):
         return [
-            _band(f"{prefix}_band", 0, 0, 1280, 76, accent),
-            _title_block(f"{prefix}_txt", 28, 10, 1200, 58, title, subtitle),
+            _band(f"{prefix}_band", 0, 0, 1280, 64, accent),
+            _textbox(f"{prefix}_t", 28, 12, 900, 30, title, "17pt", "#FFFFFF"),
+            _textbox(f"{prefix}_s", 28, 40, 900, 20, subtitle, "10pt", "#F3F2F1"),
         ]
 
     # Page 1 — Direction
@@ -521,10 +490,10 @@ def build_report(state, config):
         _donut("dn3", 800, 202, 452, 248, "dim_sponsorships", "package_tier", "dim_sponsorships", "Total Sponsorships",
                "Partenariats par Niveau de Package"),
         _table("tbl1", 28, 462, 1224, 246, [
-            ("dim_customers", "name", "Column", "Sponsor"),
-            ("dim_customers", "segment", "Column", "Segment"),
-            ("dim_sponsorships", "package_tier", "Column", "Package"),
-            ("dim_zones", "name", "Column", "Zone"),
+            ("dim_customers", "name", "Column"),
+            ("dim_customers", "segment", "Column"),
+            ("dim_sponsorships", "package_tier", "Column"),
+            ("dim_zones", "name", "Column"),
         ], "Partenariats — Sponsor × Segment × Package × Zone"),
     ]
 

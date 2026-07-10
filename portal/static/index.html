@@ -809,7 +809,7 @@ var agents={},activeAgent=null,embedData=null,agentReports={},realtimeEmbedded={
    1. Register an Entra app (redirect URI = this portal origin, e.g. http://localhost:8000).
    2. Add delegated permissions Fabric.Embed + KQLDashboard.Read.All, grant admin consent.
    3. Paste the Application (client) ID and Directory (tenant) ID below, then reload. */
-var FABRIC_EMBED={ clientId:"<FABRIC_EMBED_CLIENT_ID>", tenantId:"<FABRIC_EMBED_TENANT_ID>" };
+var FABRIC_EMBED={ clientId:"2fb8b221-ee6d-49c1-b713-37140715020b", tenantId:"92701a21-ddea-4028-ba85-4c1f91fab881" };
 FABRIC_EMBED.enabled = !!(FABRIC_EMBED.clientId && FABRIC_EMBED.clientId.charAt(0)!=='<'
                        && FABRIC_EMBED.tenantId && FABRIC_EMBED.tenantId.charAt(0)!=='<');
 
@@ -1011,7 +1011,7 @@ function loadRealtimeForAgent(key){
     return;
   }
   if(realtimeEmbedded[key])return;
-  if(!window.FabricEmbed){fail('SDK Fabric Embed non chargé (import ESM). Vérifie la connexion réseau / la disponibilité du package preview.');return;}
+  if(!window.FabricEmbed){fail('SDK Fabric Embed non chargé.'+(window.__fabricEmbedError?' Détail : '+window.__fabricEmbedError:'')+' (ouvre la console F12 pour le détail complet)');return;}
   var meta=fabricMeta();
   if(!meta.dashboardId){fail("dashboardId absent de /api/agents (_meta).");return;}
   fb.style.display='none';co.style.display='block';
@@ -1422,10 +1422,14 @@ init();
 (async function(){
   try{
     if(!window.FABRIC_EMBED || !window.FABRIC_EMBED.enabled) return; // config prompt handled in main JS
-    const msalMod = await import('https://esm.sh/@azure/msal-browser@3');
-    const feMod   = await import('https://esm.sh/@microsoft/fabric-embed');
+    // jsDelivr +esm = single self-contained bundle per package (robust vs esm.sh cascade).
+    const [msalMod, feMod] = await Promise.all([
+      import('https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/+esm'),
+      import('https://cdn.jsdelivr.net/npm/@microsoft/fabric-embed/+esm')
+    ]);
     const { PublicClientApplication, InteractionRequiredAuthError } = msalMod;
-    const { EmbedManager, KQLDashboardEmbedClient, KQLDashboardViewMode } = feMod;
+    // @microsoft/fabric-embed@0.1.0 exports ViewMode (NOT KQLDashboardViewMode).
+    const { EmbedManager, KQLDashboardEmbedClient, ViewMode } = feMod;
     let _msal=null;
     async function ensureMsal(cfg){
       if(_msal) return _msal;
@@ -1448,11 +1452,12 @@ init();
         const accessTokenProvider = { callback: async (input)=>({ token: await getToken(cfg, input && input.scopes) }) };
         const mgr = new EmbedManager({ embedClientClasses:[KQLDashboardEmbedClient] });
         return mgr.embed(container, { accessToken:{ token }, itemId:cfg.itemId, itemType:'KQLDashboard',
-          workspaceId:cfg.workspaceId, viewMode:KQLDashboardViewMode.View, eventHooks:{ accessTokenProvider } });
+          workspaceId:cfg.workspaceId, viewMode:(ViewMode && ViewMode.View) || 'View', eventHooks:{ accessTokenProvider } });
       }
     };
     console.log('Fabric Embed SDK ready.');
   }catch(err){
+    window.__fabricEmbedError = (err && (err.message || String(err))) || 'import error';
     console.error('Fabric Embed SDK load failed:', err); // window.FabricEmbed stays undefined → friendly fallback
   }
 })();
