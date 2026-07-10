@@ -644,6 +644,10 @@ body {
 .view-chat .report-panel { display: none; }
 .view-report .chat-panel { display: none; }
 .view-report .report-panel { width: 100%; }
+.realtime-panel { display: none; flex-direction: column; background: var(--bg-primary); height: 100%; }
+.view-realtime .chat-panel { display: none; }
+.view-realtime .report-panel { display: none; }
+.view-realtime .realtime-panel { display: flex; width: 100%; }
 
 /* ═══════════════ SCROLLBARS ═══════════════ */
 ::-webkit-scrollbar { width: 5px; }
@@ -688,6 +692,7 @@ body {
       <button data-view="chat" onclick="setView('chat')">&#128172; Chat</button>
       <button data-view="report" onclick="setView('report')">&#128202; Report</button>
       <button data-view="split" onclick="setView('split')" class="active">&#9638; Split</button>
+      <button data-view="realtime" onclick="setView('realtime')">&#128225; Temps Réel</button>
     </nav>
     <div class="header-explore" id="headerExplore" style="display:none;"></div>
     <button class="health-badge" id="healthBadge" onclick="manualTokenRefresh()" title="API health — click to force-refresh tokens">
@@ -798,7 +803,15 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.23.1/dist/powerbi.min.js"></script>
 <script>
 /* ═══════════════ STATE ═══════════════ */
-var agents={},activeAgent=null,embedData=null,agentReports={};
+var agents={},activeAgent=null,embedData=null,agentReports={},realtimeEmbedded={};
+
+/* ═══ Fabric Embed (Real-Time Dashboard, preview) — FILL from your Entra app registration ═══
+   1. Register an Entra app (redirect URI = this portal origin, e.g. http://localhost:8000).
+   2. Add delegated permissions Fabric.Embed + KQLDashboard.Read.All, grant admin consent.
+   3. Paste the Application (client) ID and Directory (tenant) ID below, then reload. */
+var FABRIC_EMBED={ clientId:"<FABRIC_EMBED_CLIENT_ID>", tenantId:"<FABRIC_EMBED_TENANT_ID>" };
+FABRIC_EMBED.enabled = !!(FABRIC_EMBED.clientId && FABRIC_EMBED.clientId.charAt(0)!=='<'
+                       && FABRIC_EMBED.tenantId && FABRIC_EMBED.tenantId.charAt(0)!=='<');
 
 function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function timeNow(){var d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
@@ -822,6 +835,7 @@ document.addEventListener('keydown',function(e){
   if(e.ctrlKey&&e.key==='1'){e.preventDefault();setView('chat');}
   if(e.ctrlKey&&e.key==='2'){e.preventDefault();setView('report');}
   if(e.ctrlKey&&e.key==='3'){e.preventDefault();setView('split');}
+  if(e.ctrlKey&&e.key==='4'){e.preventDefault();setView('realtime');}
 });
 
 /* ═══════════════ INIT ═══════════════ */
@@ -883,7 +897,7 @@ function renderCards(){
 }
 
 /* ═══════════════ DEEP-LINK BUILDERS ═══════════════ */
-function fabricMeta(){return agents._meta||{tenantId:'',workspaceId:''};}
+function fabricMeta(){return agents._meta||{tenantId:'',workspaceId:'',dashboardId:''};}
 function buildAgentUrl(cfg){
   var m=fabricMeta();
   return 'https://app.fabric.microsoft.com/groups/'+m.workspaceId+
@@ -952,11 +966,12 @@ function ensureCtx(key){
     '<div class="chat-panel" id="chat-'+key+'">'+
       '<div class="chat-messages" id="msgs-'+key+'">'+
         '<div class="msg msg-assistant"><div class="msg-avatar">'+cfg.icon+'</div>'+
-        '<div class="msg-content"><div class="msg-body"><p>Welcome! I\'m <strong>'+escHtml(cfg.name)+'</strong> &mdash; '+escHtml(cfg.description).toLowerCase()+'.</p>'+
-        '<p>Ask me anything about your project data, or pick a suggestion below.</p></div>'+
+        '<div class="msg-content"><div class="msg-body">'+
+        (cfg.welcome?('<p>'+escHtml(cfg.welcome)+'</p>'):('<p>Bonjour, je suis <strong>'+escHtml(cfg.name)+'</strong> &mdash; '+escHtml(cfg.description).toLowerCase()+'.</p>'))+
+        '<p>Posez-moi votre question, ou choisissez une suggestion ci-dessous.</p></div>'+
         '<div class="msg-time">'+timeNow()+'</div></div></div></div>'+
       '<div class="suggestions" id="sug-'+key+'">'+sugHtml+'</div>'+
-      '<div class="chat-input"><input type="text" id="input-'+key+'" placeholder="Ask '+escHtml(cfg.name)+'..." onkeydown="if(event.key===\'Enter\')sendMsg(\''+key+'\')">'+
+      '<div class="chat-input"><input type="text" id="input-'+key+'" placeholder="Posez votre question à '+escHtml(cfg.name)+'\u2026" onkeydown="if(event.key===\'Enter\')sendMsg(\''+key+'\')">'+
         '<button onclick="sendMsg(\''+key+'\')" id="send-'+key+'">&#10148;</button></div>'+
     '</div>'+
     '<div class="report-panel" id="report-'+key+'">'+
@@ -964,6 +979,11 @@ function ensureCtx(key){
       '<div class="report-fallback" id="fallback-'+key+'"><div class="fallback-icon">'+cfg.icon+'</div>'+
         '<h3>'+escHtml(cfg.name)+' &mdash; Report</h3><p>Loading report...</p></div>'+
       '<div class="report-container" id="pbi-'+key+'" style="display:none;"></div>'+
+    '</div>'+
+    '<div class="realtime-panel" id="realtime-'+key+'">'+
+      '<div class="report-fallback" id="rtfb-'+key+'"><div class="fallback-icon">&#128225;</div>'+
+        '<h3>'+escHtml(cfg.name)+' &mdash; Temps Réel</h3><p>Tableau de bord temps réel (Fabric Embed).</p></div>'+
+      '<div class="report-container" id="rt-'+key+'" role="region" aria-label="Embedded Fabric Real-Time Dashboard" style="display:none;"></div>'+
     '</div>';
   document.getElementById('agentContexts').appendChild(ctx);
 }
@@ -974,6 +994,31 @@ function setView(mode){
   document.querySelectorAll('.header-nav button').forEach(function(b){
     b.classList.toggle('active',b.getAttribute('data-view')===mode);
   });
+  if(mode==='realtime')loadRealtimeForAgent(activeAgent);
+}
+
+/* ═══════════════ REAL-TIME DASHBOARD EMBED (Fabric Embed) ═══════════════ */
+function loadRealtimeForAgent(key){
+  var fb=document.getElementById('rtfb-'+key),co=document.getElementById('rt-'+key);
+  if(!fb||!co)return;
+  function fail(msg){fb.style.display='flex';co.style.display='none';
+    fb.innerHTML='<div class="fallback-icon">&#128225;</div><h3>Temps Réel — indisponible</h3><p>'+escHtml(msg)+'</p>';}
+  if(!FABRIC_EMBED.enabled){
+    fb.style.display='flex';co.style.display='none';
+    fb.innerHTML='<div class="fallback-icon">&#128225;</div><h3>Temps Réel — configuration requise</h3>'+
+      '<p>Renseigne <code>clientId</code> et <code>tenantId</code> (app registration Entra) dans <code>FABRIC_EMBED</code> (static/index.html), '+
+      'ajoute les permissions déléguées <code>Fabric.Embed</code> + <code>KQLDashboard.Read.All</code>, puis recharge.</p>';
+    return;
+  }
+  if(realtimeEmbedded[key])return;
+  if(!window.FabricEmbed){fail('SDK Fabric Embed non chargé (import ESM). Vérifie la connexion réseau / la disponibilité du package preview.');return;}
+  var meta=fabricMeta();
+  if(!meta.dashboardId){fail("dashboardId absent de /api/agents (_meta).");return;}
+  fb.style.display='none';co.style.display='block';
+  window.FabricEmbed.embed(co,{workspaceId:meta.workspaceId,itemId:meta.dashboardId,
+                              clientId:FABRIC_EMBED.clientId,tenantId:FABRIC_EMBED.tenantId})
+    .then(function(){realtimeEmbedded[key]=true;})
+    .catch(function(e){realtimeEmbedded[key]=false;fail((e&&e.message)||String(e));});
 }
 
 /* ═══════════════ MESSAGES ═══════════════ */
@@ -1367,6 +1412,50 @@ function mcpCopy(){
 }
 
 init();
+</script>
+
+<!-- ═══════════════ Fabric Embed SDK loader (ESM, lazy) ═══════════════
+     Loads MSAL + @microsoft/fabric-embed from an ESM CDN and exposes
+     window.FabricEmbed.embed(container, {clientId, tenantId, workspaceId, itemId}).
+     Only activates when FABRIC_EMBED.clientId/tenantId are filled in the main script. -->
+<script type="module">
+(async function(){
+  try{
+    if(!window.FABRIC_EMBED || !window.FABRIC_EMBED.enabled) return; // config prompt handled in main JS
+    const msalMod = await import('https://esm.sh/@azure/msal-browser@3');
+    const feMod   = await import('https://esm.sh/@microsoft/fabric-embed');
+    const { PublicClientApplication, InteractionRequiredAuthError } = msalMod;
+    const { EmbedManager, KQLDashboardEmbedClient, KQLDashboardViewMode } = feMod;
+    let _msal=null;
+    async function ensureMsal(cfg){
+      if(_msal) return _msal;
+      _msal = new PublicClientApplication({ auth:{ clientId:cfg.clientId,
+        authority:'https://login.microsoftonline.com/'+cfg.tenantId, redirectUri:window.location.origin }});
+      if(_msal.initialize) await _msal.initialize();
+      return _msal;
+    }
+    async function getToken(cfg, reqScopes){
+      const scopes = reqScopes || ['https://api.fabric.microsoft.com/.default'];
+      const m = await ensureMsal(cfg); let accts = m.getAllAccounts();
+      if(!accts.length){ await m.loginPopup({ scopes }); accts = m.getAllAccounts(); }
+      const account = accts[0];
+      try{ const r = await m.acquireTokenSilent({ scopes, account }); return r.accessToken; }
+      catch(e){ if(e instanceof InteractionRequiredAuthError){ const r = await m.acquireTokenPopup({ scopes, account }); return r.accessToken; } throw e; }
+    }
+    window.FabricEmbed = {
+      embed: async function(container, cfg){
+        const token = await getToken(cfg);
+        const accessTokenProvider = { callback: async (input)=>({ token: await getToken(cfg, input && input.scopes) }) };
+        const mgr = new EmbedManager({ embedClientClasses:[KQLDashboardEmbedClient] });
+        return mgr.embed(container, { accessToken:{ token }, itemId:cfg.itemId, itemType:'KQLDashboard',
+          workspaceId:cfg.workspaceId, viewMode:KQLDashboardViewMode.View, eventHooks:{ accessTokenProvider } });
+      }
+    };
+    console.log('Fabric Embed SDK ready.');
+  }catch(err){
+    console.error('Fabric Embed SDK load failed:', err); // window.FabricEmbed stays undefined → friendly fallback
+  }
+})();
 </script>
 </body>
 </html>

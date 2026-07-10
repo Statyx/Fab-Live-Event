@@ -43,6 +43,42 @@ _DS = [{"id": DATASET_ID, "name": "SM_Event_Analytics",
 _RP = [{"id": REPORT_ID, "name": "RPT_Event_Ops"}]
 
 AGENTS: dict[str, dict] = {
+    "admin": {
+        "id": DATA_AGENT_ID,
+        "name": "Admin Event",
+        "description": "Exploitation & terrain : files d'attente, densité, sessions, confort, observations",
+        "icon": "🛠️",
+        "accent": "#027180",
+        "datasets": _DS,
+        "reports": _RP,
+        "reportPages": ["Production", "Chefs de Projet"],
+        "welcome": "Bonjour, je suis l'assistant d'exploitation de l'événement. Interrogez-moi sur les files d'attente, la densité de foule, les sessions, le confort et les alertes terrain.",
+        "suggestions": [
+            "Quelle porte est la plus congestionnée et de combien ?",
+            "Quand le temps d'attente a-t-il été le plus élevé ?",
+            "Quelles zones ont la plus forte densité de foule ?",
+            "Quelle zone a le confort moyen le plus bas ?",
+            "Combien d'observations critiques ont été remontées ?",
+        ],
+    },
+    "client": {
+        "id": DATA_AGENT_ID,
+        "name": "Client",
+        "description": "Espaces premium, sponsors VIP et affluence des salles",
+        "icon": "🤝",
+        "accent": "#863C41",
+        "datasets": _DS,
+        "reports": _RP,
+        "reportPages": ["Client"],
+        "welcome": "Bienvenue ! Je suis l'assistant d'information de l'événement. Posez-moi vos questions sur les espaces premium, les sponsors VIP et l'affluence des salles.",
+        "suggestions": [
+            "La Salle Aspen était-elle pleine, et quand ?",
+            "Quelles zones premium ont eu la plus forte occupation ?",
+            "Liste les partenariats par niveau de package",
+            "Quels sponsors VIP sont associés à quelles zones ?",
+            "Quelle est l'occupation des salles sponsorisées ?",
+        ],
+    },
     "direction": {
         "id": DATA_AGENT_ID,
         "name": "Direction",
@@ -52,63 +88,13 @@ AGENTS: dict[str, dict] = {
         "datasets": _DS,
         "reports": _RP,
         "reportPages": ["Direction"],
+        "welcome": "Bonjour, je suis l'assistant de pilotage de l'événement. Interrogez-moi sur l'occupation, la fréquentation, la saturation et l'impact sur les sponsors VIP.",
         "suggestions": [
             "Quelle est l'occupation maximale et dans quelle zone ?",
             "Combien de zones sont saturées (au-dessus de 90 %) ?",
             "Quelle est la fréquentation maximale de la journée ?",
             "Combien de sponsors VIP et sur quelles zones ?",
             "Quel est le temps d'attente maximum aux portes d'accès ?",
-        ],
-    },
-    "production": {
-        "id": DATA_AGENT_ID,
-        "name": "Production",
-        "description": "Exploitation temps réel : files d'attente, densité, flux, alertes",
-        "icon": "🛠️",
-        "accent": "#027180",
-        "datasets": _DS,
-        "reports": _RP,
-        "reportPages": ["Production"],
-        "suggestions": [
-            "Quelle porte est la plus congestionnée et de combien ?",
-            "Quand le temps d'attente a-t-il été le plus élevé ?",
-            "Quelles zones ont la plus forte densité de foule ?",
-            "Combien de portes sont en congestion (> 10 min) ?",
-            "Combien d'observations critiques ont été remontées ?",
-        ],
-    },
-    "chefs": {
-        "id": DATA_AGENT_ID,
-        "name": "Chefs de Projet",
-        "description": "Sessions & confort : confort ressenti, m², observations terrain",
-        "icon": "📋",
-        "accent": "#896610",
-        "datasets": _DS,
-        "reports": _RP,
-        "reportPages": ["Chefs de Projet"],
-        "suggestions": [
-            "Quelle zone a le confort moyen le plus bas ?",
-            "Quelle est la capacité totale des sessions par zone ?",
-            "Combien d'observations sont encore ouvertes ?",
-            "Quelle est l'utilisation moyenne des m² par zone ?",
-            "Répartis les observations par catégorie et sévérité",
-        ],
-    },
-    "client": {
-        "id": DATA_AGENT_ID,
-        "name": "Client",
-        "description": "Sponsors & zones premium : partenariats, VIP, Salle Aspen",
-        "icon": "🤝",
-        "accent": "#863C41",
-        "datasets": _DS,
-        "reports": _RP,
-        "reportPages": ["Client"],
-        "suggestions": [
-            "La Salle Aspen était-elle pleine, et quand ?",
-            "Quelles zones premium ont eu la plus forte occupation ?",
-            "Liste les partenariats par niveau de package",
-            "Quels sponsors VIP sont associés à quelles zones ?",
-            "Quelle est l'occupation des salles sponsorisées ?",
         ],
     },
 }
@@ -304,6 +290,7 @@ async def list_agents():
         "_meta": {
             "tenantId": tenant_id,
             "workspaceId": WORKSPACE_ID,
+            "dashboardId": DASHBOARD_ID,
         }
     }
     for key, cfg in AGENTS.items():
@@ -317,6 +304,7 @@ async def list_agents():
             "reports": cfg.get("reports", []),
             "reportPages": cfg["reportPages"],
             "suggestions": cfg["suggestions"],
+            "welcome": cfg.get("welcome", ""),
         }
     return out
 
@@ -342,7 +330,7 @@ _FOLLOWUP_TEMPLATES = {
             "Combien de partenariats premium au total ?",
         ],
     },
-    "production": {
+    "admin": {
         "attente|file|queue|congestion|porte|gate": [
             "Quelle porte est la plus congestionnée ?",
             "Quand le temps d'attente a-t-il été le plus élevé ?",
@@ -360,8 +348,6 @@ _FOLLOWUP_TEMPLATES = {
             "Combien d'alertes critiques ont été remontées ?",
             "Quelles observations sont encore ouvertes ?",
         ],
-    },
-    "chefs": {
         "confort|comfort": [
             "Quelle zone a le confort le plus bas ?",
             "Comment évolue le confort pendant les sessions phares ?",
@@ -402,15 +388,10 @@ _UNIVERSAL_FOLLOWUPS = {
         "Quels sont les indicateurs clés à surveiller ?",
         "Où faut-il concentrer l'attention ?",
     ],
-    "production": [
+    "admin": [
         "Quel est l'état des files d'attente en ce moment ?",
         "Quelle porte pose le plus de problèmes ?",
-        "Quelles zones sont en tension ?",
-    ],
-    "chefs": [
         "Quel est le niveau de confort global ?",
-        "Quelles sessions sont les plus fréquentées ?",
-        "Combien d'observations restent ouvertes ?",
     ],
     "client": [
         "La Salle Aspen était-elle pleine, et quand ?",
