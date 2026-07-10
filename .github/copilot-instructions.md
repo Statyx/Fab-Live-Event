@@ -40,3 +40,10 @@ Management · Production · Chefs de projet · Client (RTI_Event_Dashboard, real
 - Operations Agent INSTRUCTIONS must stay minimal (Operational + Semantic sections only). Persona/remediation live in GOALS. ONE identifier per KQL table (ignore the other id column).
 - A fresh Eventhouse throws a transient Kusto 520 on first ingest → retry (preload_telemetry has it).
 - Never use `az rest` from Python subprocess (hangs). Use `requests` + `az account get-access-token`.
+
+## Power BI report pitfalls (`deploy_report.py` — legacy PBIX)
+- **Persona banner**: a legacy `textbox` over a colored `basicShape` band renders an OPAQUE white background (white title becomes invisible + shows a scrollbar). Fix = `vcObjects.background show=false` (transparent) + textbox `z` above the band. Put title+subtitle in ONE textbox (2 paragraphs) with generous height (~58px) — two tight stacked textboxes each add a scrollbar.
+- **KPI cards**: the new `visualType: "cardVisual"` IGNORES `categoryLabel show=false`, so the English measure label stays and gets truncated. Use the CLASSIC `visualType: "card"` + `categoryLabels` (plural) `show=false`; value styled via `labels`; projection role `Values` (not `Data`). Keep the FR label as the container `vcObjects.title`.
+- **Table `CouldNotResolveSemanticQueryDefinition`** ("two expressions with identical native reference name 'name'"): two columns share a property name (dim_customers.name + dim_zones.name). Fix = UNIQUE `NativeReferenceName` per column (pass a caption e.g. Sponsor/Zone).
+- **Deploy looks hung but isn't**: `poll_operation` is silent up to 120s → the terminal backgrounds before the `✅`. Redirect output to a file (`python -u src/deploy_report.py *> _deploy_out.txt`) and read it; `state.json` `report_id` is written only on success. Reopen the report fully (or private window) to bust Fabric render cache after a redeploy.
+- **Terminal PATH breaks** after venv activation (`cd`/`Set-Location` "not recognized"): restore with `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User')`.
