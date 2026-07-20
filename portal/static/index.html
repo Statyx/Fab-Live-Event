@@ -1015,7 +1015,7 @@ function loadRealtimeForAgent(key){
   var meta=fabricMeta();
   if(!meta.dashboardId){fail("dashboardId absent de /api/agents (_meta).");return;}
   fb.style.display='none';co.style.display='block';
-  window.FabricEmbed.embed(co,{workspaceId:meta.workspaceId,itemId:meta.dashboardId,
+  window.FabricEmbed.embed(co,{workspaceId:meta.workspaceId,itemId:meta.dashboardId,clusterUri:meta.clusterUri,
                               clientId:FABRIC_EMBED.clientId,tenantId:FABRIC_EMBED.tenantId})
     .then(function(){realtimeEmbedded[key]=true;})
     .catch(function(e){realtimeEmbedded[key]=false;fail((e&&e.message)||String(e));});
@@ -1438,18 +1438,42 @@ init();
       if(_msal.initialize) await _msal.initialize();
       return _msal;
     }
-    async function getToken(cfg, reqScopes){
-      const scopes = reqScopes || ['https://api.fabric.microsoft.com/.default'];
+    const FABRIC_SCOPE = ['https://api.fabric.microsoft.com/.default'];
+    async function getToken(cfg, reqScopes, allowPopup){
+      const scopes = (reqScopes && reqScopes.length) ? reqScopes : FABRIC_SCOPE;
       const m = await ensureMsal(cfg); let accts = m.getAllAccounts();
-      if(!accts.length){ await m.loginPopup({ scopes }); accts = m.getAllAccounts(); }
+      if(!accts.length){ await m.loginPopup({ scopes: FABRIC_SCOPE }); accts = m.getAllAccounts(); }
       const account = accts[0];
       try{ const r = await m.acquireTokenSilent({ scopes, account }); return r.accessToken; }
-      catch(e){ if(e instanceof InteractionRequiredAuthError){ const r = await m.acquireTokenPopup({ scopes, account }); return r.accessToken; } throw e; }
+      catch(e){
+        if(allowPopup && e instanceof InteractionRequiredAuthError){ const r = await m.acquireTokenPopup({ scopes, account }); return r.accessToken; }
+        throw e;
+      }
     }
     window.FabricEmbed = {
       embed: async function(container, cfg){
-        const token = await getToken(cfg);
-        const accessTokenProvider = { callback: async (input)=>({ token: await getToken(cfg, input && input.scopes) }) };
+        const token = await getToken(cfg, FABRIC_SCOPE, true);       // Fabric API token (loginPopup on first use)
+        // Pre-warm Eventhouse (Kusto) data-plane consent WITHIN the click gesture (popups allowed here),
+        // so the dashboard's tile queries can then refresh the Kusto token SILENTLY.
+        window.__ftokPrewarm = [];
+        var kustoScopes = [];
+        if(cfg.clusterUri){ kustoScopes.push(cfg.clusterUri.replace(/\/+$/,'') + '/user_impersonation'); }
+        kustoScopes.push('https://kusto.kusto.windows.net/user_impersonation');
+        for(var i=0;i<kustoScopes.length;i++){
+          try{ await getToken(cfg, [kustoScopes[i]], true); window.__ftokPrewarm.push({scope:kustoScopes[i], ok:true}); }
+          catch(e){ window.__ftokPrewarm.push({scope:kustoScopes[i], err:((e&&e.message)||String(e))}); }
+        }
+        // Resilient, diagnostic token provider (silent only — never opens a blocked background popup).
+        window.__ftok = [];
+        const accessTokenProvider = { callback: async (input)=>{
+          const req = (input && input.scopes && input.scopes.length) ? input.scopes : FABRIC_SCOPE;
+          const rec = { req: req.slice() }; window.__ftok.push(rec);
+          try{ const t = await getToken(cfg, req, false); rec.ok = true; return { token: t }; }
+          catch(e1){ rec.err = ((e1&&e1.message)||String(e1));
+            try{ const t = await getToken(cfg, FABRIC_SCOPE, false); rec.fallback = 'fabric'; return { token: t }; }
+            catch(e2){ rec.err2 = ((e2&&e2.message)||String(e2)); throw e2; }
+          }
+        }};
         const mgr = new EmbedManager({ embedClientClasses:[KQLDashboardEmbedClient] });
         return mgr.embed(container, { accessToken:{ token }, itemId:cfg.itemId, itemType:'KQLDashboard',
           workspaceId:cfg.workspaceId, viewMode:(ViewMode && ViewMode.View) || 'View', eventHooks:{ accessTokenProvider } });

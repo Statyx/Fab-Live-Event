@@ -28,6 +28,7 @@ REPORT_ID = os.getenv("REPORT_ID") or _ST.get("report_id") or "1c1b6655-1435-4fb
 DATASET_ID = os.getenv("DATASET_ID") or _ST.get("semantic_model_id") or "a4d0583c-9310-4e51-adac-dd59b75af6c1"
 DATA_AGENT_ID = os.getenv("DATA_AGENT_ID") or _ST.get("data_agent_id") or "48d3a1ab-77c0-48bb-b5fa-f647af9c6aaf"
 DASHBOARD_ID = os.getenv("DASHBOARD_ID") or _ST.get("kql_dashboard_id") or "f0400723-aa08-40a3-bc30-f8729059d851"
+CLUSTER_URI = os.getenv("QUERY_SERVICE_URI") or _ST.get("query_service_uri") or ""
 STAGE = os.getenv("AGENT_STAGE", "production")
 API_VERSION = "2024-02-15-preview"
 PBI_BASE = "https://api.powerbi.com/v1.0/myorg"
@@ -291,6 +292,7 @@ async def list_agents():
             "tenantId": tenant_id,
             "workspaceId": WORKSPACE_ID,
             "dashboardId": DASHBOARD_ID,
+            "clusterUri": CLUSTER_URI,
         }
     }
     for key, cfg in AGENTS.items():
