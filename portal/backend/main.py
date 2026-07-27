@@ -29,6 +29,26 @@ DATASET_ID = os.getenv("DATASET_ID") or _ST.get("semantic_model_id") or "a4d0583
 DATA_AGENT_ID = os.getenv("DATA_AGENT_ID") or _ST.get("data_agent_id") or "48d3a1ab-77c0-48bb-b5fa-f647af9c6aaf"
 DASHBOARD_ID = os.getenv("DASHBOARD_ID") or _ST.get("kql_dashboard_id") or "f0400723-aa08-40a3-bc30-f8729059d851"
 CLUSTER_URI = os.getenv("QUERY_SERVICE_URI") or _ST.get("query_service_uri") or ""
+
+
+def _eventhouse_db() -> str:
+    """KQL database name == eventhouse name (auto-created). Read from src/config.yaml
+    with a tiny regex (no pyyaml dependency); env override; safe fallback."""
+    env = os.getenv("EVENTHOUSE_DB")
+    if env:
+        return env
+    try:
+        import re as _re
+        cp = Path(__file__).resolve().parents[2] / "src" / "config.yaml"
+        m = _re.search(r'eventhouse_name:\s*"([^"]+)"', cp.read_text(encoding="utf-8"))
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return "EH_Event_Telemetry"
+
+
+EVENTHOUSE_DB = _eventhouse_db()
 STAGE = os.getenv("AGENT_STAGE", "production")
 API_VERSION = "2024-02-15-preview"
 PBI_BASE = "https://api.powerbi.com/v1.0/myorg"
@@ -164,6 +184,33 @@ def pbi_headers():
 
 def agent_params():
     return {"stage": STAGE, "api-version": API_VERSION}
+
+
+# ── Kusto (Eventhouse) data-plane query ──────────────────────
+def kusto_token() -> str:
+    """Data-plane token for the Fabric Eventhouse (audience = the cluster URI)."""
+    return _cached_token(f"{CLUSTER_URI}/.default")
+
+
+async def kusto_query(csl: str) -> list[dict]:
+    """Run a read-only KQL query against the Eventhouse; return rows as dicts."""
+    if not CLUSTER_URI:
+        raise HTTPException(503, "clusterUri not configured (query_service_uri missing in state.json)")
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(
+            f"{CLUSTER_URI}/v1/rest/query",
+            headers={"Authorization": f"Bearer {kusto_token()}",
+                     "Content-Type": "application/json"},
+            json={"db": EVENTHOUSE_DB, "csl": csl},
+        )
+        if r.status_code != 200:
+            raise HTTPException(502, f"Kusto query failed: {r.status_code} {r.text[:200]}")
+        tables = r.json().get("Tables", [])
+        if not tables:
+            return []
+        primary = tables[0]  # first table = the query result
+        cols = [c["ColumnName"] for c in primary.get("Columns", [])]
+        return [dict(zip(cols, row)) for row in primary.get("Rows", [])]
 
 
 # ── App ──────────────────────────────────────────────────────
@@ -594,6 +641,50 @@ async def embed_token():
             "reportId": REPORT_ID,
             "tenantId": tenant_id,
         }
+
+
+# ── Live venue floor-plan heat map (portal-native RTI over Eventhouse) ─
+@app.get("/api/floorplan")
+async def floorplan():
+    """Per-zone live + peak crowding metrics for the SVG venue heat map,
+    plus latest/peak gate wait times. Queries the Eventhouse directly."""
+    zones_q = """
+    telemetry_kpi
+    | where kpi_name in ('occupancy_pct','density_index','people_count','comfort_index')
+    | join kind=inner (telemetry_kpi | summarize maxts = max(timestamp) by zone_id) on zone_id
+    | where timestamp == maxts
+    | summarize occupancy = round(avgif(value, kpi_name == 'occupancy_pct'), 1),
+                density   = round(avgif(value, kpi_name == 'density_index'), 2),
+                people    = round(avgif(value, kpi_name == 'people_count'), 0),
+                comfort   = round(avgif(value, kpi_name == 'comfort_index'), 1)
+      by zone_id
+    | join kind=leftouter (
+        telemetry_kpi
+        | summarize peak_occupancy = round(maxif(value, kpi_name == 'occupancy_pct'), 1),
+                    peak_density   = round(maxif(value, kpi_name == 'density_index'), 2),
+                    peak_people    = round(maxif(value, kpi_name == 'people_count'), 0),
+                    min_comfort    = round(minif(value, kpi_name == 'comfort_index'), 1)
+          by zone_id
+      ) on zone_id
+    | project zone_id, occupancy, density, people, comfort,
+              peak_occupancy, peak_density, peak_people, min_comfort
+    """
+    gates_q = """
+    telemetry_queue
+    | summarize arg_max(timestamp, wait_time_s) by gate_id
+    | project gate_id, wait_min = round(wait_time_s / 60.0, 1)
+    | join kind=leftouter (
+        telemetry_queue | summarize peak_wait_min = round(max(wait_time_s) / 60.0, 1) by gate_id
+      ) on gate_id
+    | project gate_id, wait_min, peak_wait_min
+    """
+    asof_q = "telemetry_kpi | summarize m = max(timestamp) | project asOf = tostring(m)"
+    zones = await kusto_query(zones_q)
+    gates = await kusto_query(gates_q)
+    asof = await kusto_query(asof_q)
+    return {"zones": zones, "gates": gates,
+            "asOf": (asof[0].get("asOf") if asof else None),
+            "eventhouse": EVENTHOUSE_DB}
 
 
 # ── Health ───────────────────────────────────────────────────

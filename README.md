@@ -79,9 +79,8 @@ copy src\config.example.yaml src\config.yaml
 # 2. ✅ Mandatory test gate — never deploy on red
 python -m pytest tests/ -v --tb=short          # 32/32 offline
 
-# 3. Data + deploy (idempotent, ends with a warm-up)
-python src\generate_data.py                    # synthetic AMGFL26 data
-python src\deploy_all.py                        # deploy everything
+# 3. Deploy everything (idempotent — generates data, then ends with a warm-up)
+python src\deploy_all.py
 
 # 4. Launch the portal → http://localhost:8000
 .\portal\start.ps1
@@ -93,7 +92,8 @@ Useful flags:
 python src\deploy_all.py --from ontology       # resume from a step
 python src\deploy_all.py ontology graph         # run only these steps
 python src\deploy_all.py --skip data_activator,kql_dashboard
-python src\deploy_all.py --warmup               # warm capacity before a demo
+python src\deploy_all.py --warmup               # warm-up only, no deploy (before a demo)
+python src\deploy_all.py --no-warmup            # deploy without the trailing warm-up
 python src\refresh_graph.py                     # re-ingest the graph after topology changes
 ```
 
@@ -105,19 +105,21 @@ Each step is **idempotent** (state tracked in `src/state.json`):
 
 | # | Step | Artifact |
 |--:|---|---|
-| 1 | `workspace` | Fabric workspace on capacity |
-| 2 | `lakehouse` | Topology Delta tables (Edition, Zone, Gate, Sensor, Session, Customer, Sponsorship, Observation) |
-| 3 | `setup_notebook` | CSV → Delta conversion |
-| 4 | `eventhouse` | KQL tables (telemetry_kpi, telemetry_queue, alarms, event_logs) |
-| 5 | `ontology` | NonTimeSeries + TimeSeries bindings |
-| 6 | `graph` | Graph definition + `RefreshGraph` |
-| 7 | `kql_dashboard` | RTI dashboard (4 persona pages) |
-| 8 | `data_activator` | Reflex threshold alerting |
-| 9 | `operations_agent` | Autonomous detection agent |
-| 10 | `kql_shortcuts` | OneLake availability for KQL |
-| 11 | `semantic_model` | Direct Lake model (topology + telemetry) |
-| 12 | `data_agent` | Event Graph Data Agent (NL → GQL/KQL) |
-| 13 | `report` | Power BI `RPT_Event_Ops` (4 pages) |
+| 1 | `generate_data` | Synthetic `AMGFL26` topology + telemetry CSVs |
+| 2 | `workspace` | Fabric workspace on capacity |
+| 3 | `lakehouse` | Topology Delta tables (Edition, Zone, Gate, Sensor, Session, Customer, Sponsorship, Observation) |
+| 4 | `setup_notebook` | CSV → Delta conversion |
+| 5 | `eventhouse` | KQL tables (telemetry_kpi, telemetry_queue, alarms, event_logs) |
+| 6 | `preload_telemetry` | Historical telemetry ingest (retries the transient Kusto 520) |
+| 7 | `ontology` | NonTimeSeries + TimeSeries bindings |
+| 8 | `graph` | Graph definition + `RefreshGraph` |
+| 9 | `kql_dashboard` | RTI dashboard (4 persona pages) |
+| 10 | `data_activator` | Reflex threshold alerting |
+| 11 | `operations_agent` | Autonomous detection agent |
+| 12 | `kql_shortcuts` | OneLake availability for KQL |
+| 13 | `semantic_model` | Direct Lake model (topology + telemetry) |
+| 14 | `data_agent` | Event Graph Data Agent (NL → GQL/KQL) |
+| 15 | `report` | Power BI `RPT_Event_Ops` (4 pages) |
 
 ---
 

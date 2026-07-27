@@ -649,6 +649,48 @@ body {
 .view-realtime .report-panel { display: none; }
 .view-realtime .realtime-panel { display: flex; width: 100%; }
 
+/* ═══════════════ LIVE FLOOR-PLAN HEAT MAP ═══════════════ */
+.rt-scroll { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.floorplan-card { background: var(--bg-card-solid); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.floorplan-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.floorplan-title h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.floorplan-sub { font-size: 12px; color: var(--text-muted); }
+.floorplan-controls { display: flex; align-items: center; gap: 8px; }
+.fp-mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.fp-mode { padding: 6px 12px; font-size: 12px; font-weight: 600; background: transparent; color: var(--text-muted); border: none; cursor: pointer; }
+.fp-mode.active { background: var(--accent); color: #fff; }
+.fp-refresh { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-size: 16px; }
+.fp-refresh:hover { color: var(--accent); border-color: var(--accent); }
+.floorplan-body { display: flex; gap: 16px; align-items: stretch; }
+.floorplan-svg-wrap { flex: 1; min-width: 0; height: clamp(280px, 52vh, 540px); display: flex; }
+.floorplan-svg { width: 100%; height: 100%; display: block; }
+.fp-hall { fill: rgba(148,163,184,0.06); stroke: var(--border); stroke-width: 2; stroke-dasharray: 6 6; }
+.fp-rect { stroke: rgba(0,0,0,0.14); stroke-width: 1.5; transition: fill 0.6s ease; }
+.fp-rect.culprit { stroke: #7c1d17; stroke-width: 3; }
+.fp-zone.premium .fp-rect { stroke-dasharray: 0; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18)); }
+.fp-zname { font-size: 15px; font-weight: 700; text-anchor: middle; }
+.fp-zocc { font-size: 20px; font-weight: 800; text-anchor: middle; }
+.fp-zden { font-size: 11px; font-weight: 600; text-anchor: middle; opacity: 0.85; }
+.fp-gate { fill: #64748b; stroke: #fff; stroke-width: 2; }
+.fp-gate.alert { fill: #c0392b; }
+.fp-gate-pulse { fill: none; stroke: #c0392b; stroke-width: 2; opacity: 0.7; transform-origin: center; animation: fpPulse 1.8s ease-out infinite; }
+@keyframes fpPulse { 0% { r: 11; opacity: 0.7; } 100% { r: 26; opacity: 0; } }
+.fp-gate-label { font-size: 10px; font-weight: 700; text-anchor: middle; fill: var(--text-muted); }
+.fp-gate-label.alert { fill: #c0392b; }
+.floorplan-legend { width: 150px; flex-shrink: 0; border-left: 1px solid var(--border); padding-left: 14px; display: flex; flex-direction: column; gap: 6px; }
+.fp-legend-title { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+.fp-legend-scale { display: flex; height: 12px; border-radius: 6px; overflow: hidden; }
+.fp-legend-scale span { flex: 1; }
+.fp-legend-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); }
+.fp-legend-note { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-top: 8px; }
+.fp-gate-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #64748b; vertical-align: middle; }
+.fp-gate-dot.alert { background: #c0392b; }
+.rt-embed-card { display: flex; flex-direction: column; background: var(--bg-card-solid); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; min-height: 640px; }
+.rt-embed-head { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.rt-embed-head h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.rt-embed-card .report-fallback, .rt-embed-card .report-container { flex: 1; min-height: 580px; }
+@media (max-width: 820px) { .floorplan-body { flex-direction: column; } .floorplan-legend { width: auto; border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 12px; } }
+
 /* ═══════════════ SCROLLBARS ═══════════════ */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -736,7 +778,7 @@ body {
     </div>
     <div class="landing-stat">
       <span class="stat-icon">&#129302;</span>
-      <div class="stat-value" id="statAgents">4</div>
+      <div class="stat-value" id="statAgents">3</div>
       <div class="stat-label">Personas IA</div>
     </div>
     <div class="landing-stat">
@@ -981,9 +1023,41 @@ function ensureCtx(key){
       '<div class="report-container" id="pbi-'+key+'" style="display:none;"></div>'+
     '</div>'+
     '<div class="realtime-panel" id="realtime-'+key+'">'+
-      '<div class="report-fallback" id="rtfb-'+key+'"><div class="fallback-icon">&#128225;</div>'+
-        '<h3>'+escHtml(cfg.name)+' &mdash; Temps Réel</h3><p>Tableau de bord temps réel (Fabric Embed).</p></div>'+
-      '<div class="report-container" id="rt-'+key+'" role="region" aria-label="Embedded Fabric Real-Time Dashboard" style="display:none;"></div>'+
+      '<div class="rt-scroll">'+
+        '<div class="floorplan-card">'+
+          '<div class="floorplan-head">'+
+            '<div class="floorplan-title"><h3>&#128506;&#65039; Plan de salle &mdash; carte de chaleur</h3>'+
+              '<span class="floorplan-sub" id="fp-sub-'+key+'">Chargement des données terrain&hellip;</span></div>'+
+            '<div class="floorplan-controls">'+
+              '<div class="fp-mode-toggle" role="group" aria-label="Mode de la carte">'+
+                '<button class="fp-mode active" data-mode="live" onclick="setFloorMode(\''+key+'\',\'live\',this)">Live</button>'+
+                '<button class="fp-mode" data-mode="peak" onclick="setFloorMode(\''+key+'\',\'peak\',this)">Pic du jour</button>'+
+              '</div>'+
+              '<button class="fp-refresh" title="Rafraîchir" onclick="renderFloorplan(\''+key+'\')">&#8635;</button>'+
+            '</div>'+
+          '</div>'+
+          '<div class="floorplan-body">'+
+            '<div class="floorplan-svg-wrap" id="fp-svg-'+key+'" role="img" aria-label="Plan de salle en carte de chaleur"></div>'+
+            '<div class="floorplan-legend">'+
+              '<div class="fp-legend-title">Occupation</div>'+
+              '<div class="fp-legend-scale">'+
+                '<span style="background:#2e9e5b"></span><span style="background:#8fc93a"></span>'+
+                '<span style="background:#f6b93b"></span><span style="background:#e8590c"></span>'+
+                '<span style="background:#c0392b"></span>'+
+              '</div>'+
+              '<div class="fp-legend-ticks"><span>0%</span><span>50%</span><span>100%</span></div>'+
+              '<div class="fp-legend-note"><span class="fp-gate-dot"></span> Porte d\'accès &middot; '+
+                '<span class="fp-gate-dot alert"></span> Porte en congestion</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="rt-embed-card">'+
+          '<div class="rt-embed-head"><h3>&#128225; Tableau de bord temps réel (Fabric)</h3></div>'+
+          '<div class="report-fallback" id="rtfb-'+key+'"><div class="fallback-icon">&#128225;</div>'+
+            '<h3>'+escHtml(cfg.name)+' &mdash; Temps Réel</h3><p>Tableau de bord temps réel (Fabric Embed).</p></div>'+
+          '<div class="report-container" id="rt-'+key+'" role="region" aria-label="Embedded Fabric Real-Time Dashboard" style="display:none;"></div>'+
+        '</div>'+
+      '</div>'+
     '</div>';
   document.getElementById('agentContexts').appendChild(ctx);
 }
@@ -999,6 +1073,113 @@ function setView(mode){
 
 /* ═══════════════ REAL-TIME DASHBOARD EMBED (Fabric Embed) ═══════════════ */
 function loadRealtimeForAgent(key){
+  // Portal-native live floor plan (robust, always renders) + Fabric embed below it.
+  renderFloorplan(key);
+  startFloorplanTimer(key);
+  loadFabricEmbed(key);
+}
+
+/* ─── Live venue floor plan (SVG heat map over the Eventhouse) ─── */
+// Schematic hall layout (viewBox 1000×620), 3 columns, culprit Salle Aspen central.
+var ZONE_LAYOUT={
+  'ZONE-AUD':    {x:40, y:60,  w:260, h:240, name:'Grand Auditorium', gate:'GATE-01'},
+  'ZONE-STARTUP':{x:40, y:320, w:260, h:120, name:'Startup Alley',    gate:'GATE-03'},
+  'ZONE-VIP':    {x:40, y:460, w:260, h:120, name:'VIP Lounge',       gate:'GATE-08'},
+  'ZONE-FOOD':   {x:320,y:60,  w:220, h:120, name:'Food Court',       gate:'GATE-07'},
+  'ZONE-ASPEN':  {x:320,y:200, w:220, h:220, name:'Salle Aspen',      gate:'GATE-05'},
+  'ZONE-BILAT':  {x:320,y:440, w:220, h:140, name:'Bilatérales',      gate:'GATE-06'},
+  'ZONE-EXPO':   {x:560,y:60,  w:400, h:300, name:'Hall Expo',        gate:'GATE-02'},
+  'ZONE-LAB':    {x:560,y:380, w:400, h:200, name:'Workshop Labs',    gate:'GATE-04'}
+};
+var CULPRIT_GATE='GATE-05';
+var floorMode={}, floorTimer=null, floorData={};
+
+function heatColor(pct){
+  if(pct==null||isNaN(pct))return '#3a3f4b';
+  var stops=[[0,[46,158,91]],[50,[143,201,58]],[70,[246,185,59]],[85,[232,89,12]],[100,[192,57,43]]];
+  pct=Math.max(0,Math.min(100,pct));
+  for(var i=0;i<stops.length-1;i++){
+    var a=stops[i],b=stops[i+1];
+    if(pct<=b[0]){
+      var t=(pct-a[0])/(b[0]-a[0]);
+      var c=[0,1,2].map(function(j){return Math.round(a[1][j]+(b[1][j]-a[1][j])*t);});
+      return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
+    }
+  }
+  return 'rgb(192,57,43)';
+}
+function textOn(pct){ return (pct!=null && pct>=62) ? '#fff' : '#10151f'; }
+function fmt(v,d){ return (v==null||isNaN(v))?'—':(d?Number(v).toFixed(d):Math.round(v)); }
+
+function setFloorMode(key,mode,btn){
+  floorMode[key]=mode;
+  var wrap=btn.parentNode; wrap.querySelectorAll('.fp-mode').forEach(function(b){b.classList.toggle('active',b===btn);});
+  drawFloorplan(key);
+}
+function startFloorplanTimer(key){
+  if(floorTimer)clearInterval(floorTimer);
+  floorTimer=setInterval(function(){
+    var ctx=document.getElementById('ctx-'+activeAgent);
+    if(activeAgent && ctx && ctx.className.indexOf('view-realtime')>-1){ renderFloorplan(activeAgent); }
+  },30000);
+}
+function renderFloorplan(key){
+  fetch('/api/floorplan').then(function(r){return r.json();}).then(function(d){
+    floorData[key]=d; drawFloorplan(key);
+  }).catch(function(e){
+    var sub=document.getElementById('fp-sub-'+key);
+    if(sub)sub.textContent='Données terrain indisponibles : '+((e&&e.message)||e);
+  });
+}
+function drawFloorplan(key){
+  var d=floorData[key]; if(!d)return;
+  var mode=floorMode[key]||'live';
+  var byZone={}; (d.zones||[]).forEach(function(z){byZone[z.zone_id]=z;});
+  var byGate={}; (d.gates||[]).forEach(function(g){byGate[g.gate_id]=g;});
+  var svg='<svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" class="floorplan-svg">';
+  svg+='<rect x="8" y="8" width="984" height="604" rx="18" class="fp-hall"/>';
+  Object.keys(ZONE_LAYOUT).forEach(function(zid){
+    var L=ZONE_LAYOUT[zid], z=byZone[zid]||{};
+    var occ = mode==='peak' ? z.peak_occupancy : z.occupancy;
+    var den = mode==='peak' ? z.peak_density   : z.density;
+    var ppl = mode==='peak' ? z.peak_people    : z.people;
+    var fill=heatColor(occ), tc=textOn(occ);
+    var premium=(zid==='ZONE-ASPEN'||zid==='ZONE-VIP'||zid==='ZONE-AUD');
+    var g=byGate[L.gate]||{}; var wait=mode==='peak'?g.peak_wait_min:g.wait_min;
+    var congested=(L.gate===CULPRIT_GATE)||(wait!=null&&wait>=10);
+    var cx=L.x+L.w/2, cy=L.y+L.h/2;
+    var tip=L.name+' — occ '+fmt(occ,1)+'% · densité '+fmt(den,2)+' p/m² · '+fmt(ppl)+' pers.'+
+            (g.wait_min!=null?(' · '+L.gate+' attente '+fmt(wait,1)+' min'):'');
+    svg+='<g class="fp-zone'+(premium?' premium':'')+'">';
+    svg+='<title>'+tip.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</title>';
+    svg+='<rect x="'+L.x+'" y="'+L.y+'" width="'+L.w+'" height="'+L.h+'" rx="12" fill="'+fill+'" class="fp-rect'+(zid==='ZONE-ASPEN'?' culprit':'')+'"/>';
+    svg+='<text x="'+cx+'" y="'+(cy-14)+'" class="fp-zname" fill="'+tc+'">'+L.name+'</text>';
+    svg+='<text x="'+cx+'" y="'+(cy+12)+'" class="fp-zocc" fill="'+tc+'">'+fmt(occ,1)+'%</text>';
+    svg+='<text x="'+cx+'" y="'+(cy+34)+'" class="fp-zden" fill="'+tc+'">'+fmt(den,2)+' p/m²</text>';
+    // gate marker at bottom-center
+    var gx=cx, gy=L.y+L.h;
+    svg+='<circle cx="'+gx+'" cy="'+gy+'" r="'+(congested?11:7)+'" class="fp-gate'+(congested?' alert':'')+'"/>';
+    if(congested){ svg+='<circle cx="'+gx+'" cy="'+gy+'" r="11" class="fp-gate-pulse"/>'; }
+    svg+='<text x="'+gx+'" y="'+(gy+22)+'" class="fp-gate-label'+(congested?' alert':'')+'">'+L.gate+
+         (wait!=null?(' · '+fmt(wait,0)+'min'):'')+'</text>';
+    svg+='</g>';
+  });
+  svg+='</svg>';
+  document.getElementById('fp-svg-'+key).innerHTML=svg;
+  var sub=document.getElementById('fp-sub-'+key);
+  if(sub){
+    var hottest=null;(d.zones||[]).forEach(function(z){
+      var o=mode==='peak'?z.peak_occupancy:z.occupancy;
+      if(o!=null&&(!hottest||o>hottest.o))hottest={n:(ZONE_LAYOUT[z.zone_id]||{}).name||z.zone_id,o:o};
+    });
+    var when=d.asOf?(' · '+new Date(d.asOf).toLocaleTimeString('fr-FR')):'';
+    sub.textContent=(mode==='peak'?'Pic de la journée':'Temps réel')+
+      (hottest?(' · zone la plus chaude : '+hottest.n+' '+fmt(hottest.o,1)+'%'):'')+when;
+  }
+}
+
+/* ─── Fabric Embed (richer RTI dashboard, below the floor plan) ─── */
+function loadFabricEmbed(key){
   var fb=document.getElementById('rtfb-'+key),co=document.getElementById('rt-'+key);
   if(!fb||!co)return;
   function fail(msg){fb.style.display='flex';co.style.display='none';
