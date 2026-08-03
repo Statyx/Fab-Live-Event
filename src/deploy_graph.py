@@ -10,9 +10,8 @@ dataSource paths use the REAL OneLake locations from GET /lakehouses/{lh}/tables
 """
 import sys, json, base64, hashlib, uuid, time
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import bootstrap
+bootstrap()
 
 import requests
 from helpers import get_fabric_token, fabric_headers, load_config, load_state

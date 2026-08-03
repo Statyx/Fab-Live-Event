@@ -14,9 +14,8 @@ Usage:
 """
 import sys, base64, json, uuid, time, argparse
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import bootstrap
+bootstrap()
 
 import requests
 from helpers import (load_config, load_state, save_state, get_fabric_token,

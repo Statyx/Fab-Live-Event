@@ -16,7 +16,7 @@ from typing import Any, Dict, Optional
 
 import requests
 
-from path_utils import IS_WINDOWS
+from platform_env import AZ_NEEDS_SHELL
 
 SCRIPT_DIR = Path(__file__).parent
 CONFIG_FILE = SCRIPT_DIR / "config.yaml"
@@ -48,7 +48,7 @@ def get_fabric_token() -> str:
         ["az", "account", "get-access-token",
          "--resource", "https://api.fabric.microsoft.com",
          "--query", "accessToken", "-o", "tsv"],
-        shell=IS_WINDOWS
+        shell=AZ_NEEDS_SHELL
     )
     return result.decode().strip()
 
@@ -67,7 +67,7 @@ def get_kusto_token(query_service_uri: str) -> str:
                 ["az", "account", "get-access-token",
                  "--resource", scope,
                  "--query", "accessToken", "-o", "tsv"],
-                shell=IS_WINDOWS
+                shell=AZ_NEEDS_SHELL
             )
             token = result.decode().strip()
             if token:

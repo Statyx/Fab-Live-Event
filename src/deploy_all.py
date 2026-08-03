@@ -21,9 +21,8 @@ TENANT: az silently flips to another tenant. Set `az_subscription` in config.yam
 """
 import sys
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import IS_WINDOWS, restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import AZ_NEEDS_SHELL, bootstrap
+bootstrap()
 
 import argparse
 import importlib
@@ -62,7 +61,7 @@ def ensure_tenant(cfg):
               "(404 EntityNotFound = wrong tenant).")
         return
     try:
-        subprocess.check_call(["az", "account", "set", "--subscription", sub], shell=IS_WINDOWS)
+        subprocess.check_call(["az", "account", "set", "--subscription", sub], shell=AZ_NEEDS_SHELL)
         print(f"✓  az subscription set to '{sub}'")
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Could not set az subscription '{sub}': {e}")

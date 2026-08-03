@@ -10,9 +10,8 @@ PUT create -> PATCH append -> PATCH flush) — requests/urllib3 hang on OneLake 
 """
 import sys, json, subprocess, http.client
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import IS_WINDOWS, restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import AZ_NEEDS_SHELL, bootstrap
+bootstrap()
 
 from pathlib import Path
 import requests
@@ -27,7 +26,7 @@ ONELAKE_HOST = "onelake.dfs.fabric.microsoft.com"
 def storage_token() -> str:
     out = subprocess.check_output(
         ["az", "account", "get-access-token", "--resource", "https://storage.azure.com",
-         "--query", "accessToken", "-o", "tsv"], shell=IS_WINDOWS)
+         "--query", "accessToken", "-o", "tsv"], shell=AZ_NEEDS_SHELL)
     return out.decode().strip()
 
 

@@ -11,9 +11,8 @@ afterwards (build + push the graph definition + RefreshGraph). See graph-agent.
 """
 import sys, json, base64, hashlib, uuid
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import bootstrap
+bootstrap()
 
 import requests
 from helpers import (get_fabric_token, fabric_headers, load_config, load_state,

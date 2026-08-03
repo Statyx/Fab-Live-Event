@@ -41,26 +41,41 @@ def test_no_module_level_winreg_import():
     assert not offenders, f"winreg imported unconditionally in: {offenders}"
 
 
-def test_path_utils_falls_back_without_winreg():
-    """Off Windows, restore_path() is a no-op and lookup goes through shutil.which."""
+def test_restore_path_is_inert_off_windows():
+    """Off Windows there is no registry: restore_path() must leave PATH untouched."""
     import importlib
     import os
 
-    pu = importlib.import_module("path_utils")
+    pe = importlib.import_module("platform_env")
     real_platform = sys.platform
     try:
         sys.platform = "linux"
         sys.modules["winreg"] = None  # any `import winreg` now raises
-        pu = importlib.reload(pu)
-        assert pu.IS_WINDOWS is False
+        pe = importlib.reload(pe)
+        assert pe.IS_WINDOWS is False
+        assert pe.AZ_NEEDS_SHELL is False, "shell=True with an argv list breaks on POSIX"
         before = os.environ.get("PATH", "")
-        pu.restore_path()
+        pe.restore_path()
         assert os.environ.get("PATH", "") == before, "PATH must be untouched off Windows"
-        assert pu.which("no-such-executable-fab-live-event") is None
     finally:
         sys.platform = real_platform
         sys.modules.pop("winreg", None)
-        importlib.reload(pu)
+        importlib.reload(pe)
+
+
+def test_find_executable_uses_the_standard_path(tmp_path, monkeypatch):
+    """find_executable() must resolve through the standard environment PATH."""
+    import platform_env
+
+    binary = tmp_path / ("fake-tool.bat" if platform_env.IS_WINDOWS else "fake-tool")
+    binary.write_text("echo hi\n", encoding="utf-8")
+    binary.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path))
+
+    found = platform_env.find_executable("fake-tool")
+    assert found is not None
+    assert pathlib.Path(found).name.lower() == binary.name.lower()  # PATHEXT is uppercased
+    assert platform_env.find_executable("no-such-executable-fab-live-event") is None
 
 
 # ── Config / state ──────────────────────────────────────────────

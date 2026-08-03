@@ -19,9 +19,8 @@ Critical CONGESTION alarm + event log fire once it crosses the threshold.
 """
 import sys, argparse, time
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import bootstrap
+bootstrap()
 
 from pathlib import Path
 from datetime import datetime, timezone

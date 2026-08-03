@@ -6,9 +6,8 @@ shortcuts) and the key persona measures return values.
 """
 import sys, subprocess, json
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import IS_WINDOWS, restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import AZ_NEEDS_SHELL, bootstrap
+bootstrap()
 
 from pathlib import Path
 import requests
@@ -22,7 +21,7 @@ def pbi_token():
     out = subprocess.check_output(
         ["az", "account", "get-access-token", "--resource",
          "https://analysis.windows.net/powerbi/api", "--query", "accessToken", "-o", "tsv"],
-        shell=IS_WINDOWS)
+        shell=AZ_NEEDS_SHELL)
     return out.decode().strip()
 
 

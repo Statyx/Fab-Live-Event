@@ -17,9 +17,8 @@ injection needs NO graph refresh.
 """
 import sys
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import bootstrap
+bootstrap()
 
 import time
 import requests

@@ -5,9 +5,8 @@ streaming-ingestion REST API. Verifies row counts afterwards.
 """
 import sys, time
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import bootstrap
+bootstrap()
 
 from pathlib import Path
 from helpers import (load_config, load_state, get_kusto_token, kusto_mgmt,

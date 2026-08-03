@@ -7,7 +7,7 @@
 ![Microsoft Fabric](https://img.shields.io/badge/Microsoft-Fabric-0078D4?logo=microsoft&logoColor=white)
 ![Fabric IQ](https://img.shields.io/badge/Fabric_IQ-Ontology_+_Graph-6242C9)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-35_passing-2E9E44)
+![Tests](https://img.shields.io/badge/tests-36_passing-2E9E44)
 ![Portal](https://img.shields.io/badge/Portal-FastAPI-009688?logo=fastapi&logoColor=white)
 ![Deploy](https://img.shields.io/badge/deploy-idempotent-896610)
 
@@ -77,7 +77,7 @@ flowchart LR
 copy src\config.example.yaml src\config.yaml
 
 # 2. ✅ Mandatory test gate — never deploy on red
-python -m pytest tests/ -v --tb=short          # 35/35 offline
+python -m pytest tests/ -v --tb=short          # 36/36 offline
 
 # 3. Deploy everything (idempotent — generates data, then ends with a warm-up)
 python src\deploy_all.py
@@ -236,13 +236,16 @@ Everything under `src/` — data generation, the whole `deploy_all.py` pipeline,
 `inject_event.py`, `validate_powerbi.py` and the test suite — runs on **Windows, macOS and Linux**.
 CI runs the test gate on `ubuntu-latest`.
 
-`src/path_utils.py` is the single place that deals with platform differences:
+`src/platform_env.py` is the single place that deals with platform differences
+(same module name and API as the twin repo `Fab-Network-Operations`):
 
 | | Windows | macOS / Linux |
 |---|---|---|
+| `import winreg` | yes, guarded by `IS_WINDOWS` | never imported (`winreg = None`) |
 | `restore_path()` | rebuilds `PATH` from the registry (machine then user `Path`) — venv activation can wipe it | no-op: the process `PATH` is already authoritative |
-| `which()` | registry self-heal, then `shutil.which` | `shutil.which` |
-| `az` subprocess calls | `shell=True` (`az` is a `.cmd`) | `shell=False` on the argv list |
+| `find_executable()` | registry self-heal, then `shutil.which` | `shutil.which` |
+| `AZ_NEEDS_SHELL` | `True` — `az` is a `.cmd` shim, subprocess needs the shell | `False` — `shell=True` with an argv list would run only `az` and silently drop every argument |
+| `bootstrap()` | `restore_path()` + UTF-8 stdout | same, PATH step inert |
 
 **Windows-only by nature** (no cross-platform equivalent shipped):
 

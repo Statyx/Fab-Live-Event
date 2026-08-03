@@ -20,9 +20,8 @@ Design notes (from report-builder-agent/visual_catalog.legacy.md):
 """
 import sys
 # ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from path_utils import restore_path, configure_stdout
-restore_path()
-configure_stdout()
+from platform_env import bootstrap
+bootstrap()
 
 import json
 from pathlib import Path
