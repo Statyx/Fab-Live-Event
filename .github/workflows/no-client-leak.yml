@@ -13,36 +13,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # This repo is public. Any real customer name or hardcoded Entra/Fabric identifier
-      # is a leak, so the build fails loudly instead of quietly shipping it.
-      # The names below are written with a single letter parenthesised (ERE groups match the
-      # same string) so that this guard file is not itself a hit for its own scan.
-      - name: Scan for client names
-        run: |
-          PATTERN='p(u)blicis|v(i)vatech|o(r)ange|a(i)r.?liquide|t(e)chnip|f(o)rvia|v(e)olia|a(r)kema|c(a)pgemini|e(i)ffage|o(p)mobility'
-          if grep -rniE "$PATTERN" \
-               --exclude-dir=.git \
-               --exclude-dir=node_modules \
-               --exclude-dir=__pycache__ \
-               . ; then
-            echo "::error::A known client name appears in the repository. Anonymise it before merging."
-            exit 1
-          fi
-          echo "OK - no client name found."
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Scan for hardcoded clientId / tenantId GUIDs
-        run: |
-          PATTERN='(client_?id|tenant_?id)["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
-          if grep -rniE "$PATTERN" \
-               --exclude-dir=.git \
-               --exclude-dir=node_modules \
-               --exclude-dir=__pycache__ \
-               --exclude-dir=workflows \
-               . ; then
-            echo "::error::A clientId/tenantId GUID is hardcoded. Inject it from the environment instead."
-            exit 1
-          fi
-          echo "OK - no hardcoded clientId/tenantId."
+      # This repo is public. Detection is by SHAPE, never by name: a list of customer
+      # names committed here would itself be the leak it is meant to prevent, and
+      # obfuscating that list only fools full-text search, not a reader.
+      # scripts/check_no_client_leak.py is copied byte-for-byte from the canonical
+      # source (Statyx/Fab-Analyze-Data-Agent@6e4a65e7) — do not edit it locally.
+      - name: Structural scan (GUIDs, Fabric endpoints, personal paths)
+        run: python scripts/check_no_client_leak.py
+
+      # Name-based detection is preserved, but the names live in a secret, never in
+      # the source tree. Secret missing (forks, external PRs) -> warning, still green.
+      - name: Client deny-list scan (from secret, optional)
+        env:
+          CLIENT_DENYLIST: ${{ secrets.CLIENT_DENYLIST }}
+        run: python scripts/check_client_denylist.py
 
   tests:
     name: pytest

@@ -1,0 +1,6 @@
+# scripts/check_no_client_leak.py is copied byte-for-byte from the canonical source
+# (Statyx/Fab-Analyze-Data-Agent). Its SHA-256 is the proof it was not edited, so it must
+# keep LF endings on every platform — core.autocrlf=true would otherwise rewrite it to CRLF
+# on checkout and break the hash for anyone verifying it on Windows.
+scripts/check_no_client_leak.py text eol=lf
+scripts/check_client_denylist.py text eol=lf

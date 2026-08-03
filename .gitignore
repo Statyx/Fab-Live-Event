@@ -28,6 +28,11 @@ _*.json
 Thumbs.db
 *.swp
 
+# Local client deny-list read by scripts/check_client_denylist.py. It holds real customer
+# names, so it must never be committed to this public repo — in CI the same list comes from
+# the CLIENT_DENYLIST secret instead.
+.clientdeny
+
 # Environment-specific — contain tenant / workspace / item IDs. Use the *.example files as templates.
 src/config.yaml
 src/state.json
