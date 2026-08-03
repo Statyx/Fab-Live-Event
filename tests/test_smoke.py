@@ -115,6 +115,26 @@ def test_az_is_never_launched_with_a_bare_shell_true():
     assert not offenders, f"hard-coded shell=True in: {offenders}"
 
 
+def test_az_needs_shell_has_exactly_one_definition():
+    """Needing a shell to run `az` is a property of the platform, not of helpers.py.
+
+    It must be defined once, in platform_env.py, and imported everywhere else —
+    otherwise any script calling az without going through helpers would redefine it,
+    which is exactly the duplication this module removed.
+    """
+    definers = []
+    for py in _py_files():
+        tree = ast.parse(py.read_text(encoding="utf-8"), filename=str(py))
+        for node in ast.walk(tree):
+            targets = getattr(node, "targets", [])
+            if isinstance(node, ast.AnnAssign):
+                targets = [node.target]
+            if any(isinstance(t, ast.Name) and t.id == "AZ_NEEDS_SHELL" for t in targets):
+                definers.append(py.name)
+    assert definers == ["platform_env.py"], \
+        f"AZ_NEEDS_SHELL must be defined only in platform_env.py, found in {definers}"
+
+
 # ── Config / state ──────────────────────────────────────────────
 def _config_path() -> pathlib.Path:
     """Prefer the local (gitignored) config.yaml, fall back to the committed example."""
