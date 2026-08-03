@@ -1,11 +1,11 @@
-# Live Event Center Portal — Start Script
+# Live Event Operations Portal — Start Script
 # Launches the portal on http://localhost:8000
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Write-Host ""
-Write-Host "  Live Event Center Portal" -ForegroundColor Cyan
+Write-Host "  Live Event Operations Portal" -ForegroundColor Cyan
 Write-Host "  ========================" -ForegroundColor Cyan
 Write-Host ""
 

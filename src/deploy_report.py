@@ -428,7 +428,7 @@ def build_report(state, config):
         ]
 
     # Page 1 — Direction
-    p1 = header("d", C_BLUE, "Live Event Center — Pilotage Direction",
+    p1 = header("d", C_BLUE, "Live Event Operations — Pilotage Direction",
                 "AMGFL26 · vue consolidée de la journée · occupation, fréquentation, saturation") + [
         _card("c1", 28, 78, 238, 112, "telemetry_kpi", "Peak Attendees", NEUTRAL, "Fréquentation Max"),
         _card("c2", 278, 78, 238, 112, "telemetry_kpi", "Avg Occupancy %", NEUTRAL, "Occupation Moyenne"),
@@ -600,7 +600,7 @@ def main():
     else:
         resp = requests.post(f"{api}/workspaces/{ws_id}/items", headers=headers,
                              json={"displayName": rpt_name, "type": "Report",
-                                   "description": "Live Event Center — rapport 4 personas",
+                                   "description": "Live Event Operations — rapport 4 personas",
                                    "definition": {"parts": parts}})
 
     if resp.status_code in (200, 201):

@@ -1,4 +1,4 @@
-"""Smoke tests for Publicis Live Event Center — offline gate (no Fabric needed).
+"""Smoke tests for Live Event Operations — offline gate (no Fabric needed).
 
 Validates: Python compiles, config/state parse, and the synthetic data generator produces a
 coherent topology + an embedded congestion peak the Operations Agent can RCA.
@@ -30,15 +30,21 @@ def test_python_compiles(py):
 
 
 # ── Config / state ──────────────────────────────────────────────
+def _config_path() -> pathlib.Path:
+    """Prefer the local (gitignored) config.yaml, fall back to the committed example."""
+    local = SRC / "config.yaml"
+    return local if local.exists() else SRC / "config.example.yaml"
+
+
 def test_config_parses_and_has_keys():
-    cfg = yaml.safe_load((SRC / "config.yaml").read_text(encoding="utf-8"))
+    cfg = yaml.safe_load(_config_path().read_text(encoding="utf-8"))
     for key in ["workspace_name", "fabric_api_base", "lakehouse_name", "eventhouse_name",
                 "ontology_name", "operations_agent_name", "culprit_gate", "telemetry",
                 "edition", "zones", "customers", "sessions"]:
         assert key in cfg, f"config missing '{key}'"
     assert cfg["culprit_gate"].startswith("GATE-")
     assert len(cfg["zones"]) >= 4
-    assert cfg["workspace_name"] == "CDR - Live Event Center"
+    assert isinstance(cfg["workspace_name"], str) and cfg["workspace_name"].strip()
 
 
 def test_state_example_is_valid_json():

@@ -110,7 +110,7 @@ def build_parts(workspace_id, lakehouse_id, ontology_name, kql_db_id, cluster_ur
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
         "metadata": {"type": "Ontology", "displayName": ontology_name,
                      "description": "Live-event knowledge graph (8 topology entities, 9 relationships)."},
-        "config": {"version": "2.0", "logicalId": det_guid("ONT-LEC-logicalId")},
+        "config": {"version": "2.0", "logicalId": det_guid("ONT-LEO-logicalId")},
     }
     parts.append({"path": ".platform", "payload": b64(platform), "payloadType": "InlineBase64"})
     parts.append({"path": "definition.json", "payload": b64({}), "payloadType": "InlineBase64"})

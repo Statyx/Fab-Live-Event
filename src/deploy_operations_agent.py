@@ -29,7 +29,7 @@ from helpers import (load_config, load_state, save_state, get_fabric_token,
 
 ALERT_RECIPIENT = "alerts@example.com"  # set to your UPN / Teams recipient (bindings are wired in the UI)
 
-GOALS = """You are the Event Operations Agent for a Publicis Live control room. You continuously
+GOALS = """You are the Event Operations Agent for a Contoso Events control room. You continuously
 monitor the live gate-queue and zone telemetry in the Eventhouse and raise an alert to the on-duty
 operations lead the moment a gate or zone breaches a threshold, naming the affected gate or zone and
 the metric that breached, so the team can act before the attendee experience or safety degrades.
@@ -78,7 +78,7 @@ def main():
     else:
         r = requests.post(f"{api}/workspaces/{ws}/OperationsAgents", headers=h,
                           json={"displayName": name,
-                                "description": "LEC real-time event monitor over EH_Event_Telemetry (Knowledge Source + Teams + schedule set in UI; not active yet)"},
+                                "description": "LEO real-time event monitor over EH_Event_Telemetry (Knowledge Source + Teams + schedule set in UI; not active yet)"},
                           timeout=60)
         if r.status_code in (200, 201):
             aid = r.json()["id"]

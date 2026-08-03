@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Event Center — Publicis Live</title>
+<title>Live Event Operations</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -717,11 +717,11 @@ body {
         </linearGradient>
       </defs>
       <circle cx="50" cy="50" r="48" fill="url(#tenGrad)"/>
-      <text x="50" y="58" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="26" font-weight="800" fill="white" letter-spacing="-1">LEC</text>
+      <text x="50" y="58" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="26" font-weight="800" fill="white" letter-spacing="-1">LEO</text>
     </svg>
     <div>
-      <h1>Live Event Center</h1>
-      <span class="header-sub">Publicis Live &mdash; AI Operations</span>
+      <h1>Live Event Operations</h1>
+      <span class="header-sub">Contoso Events &mdash; AI Operations</span>
     </div>
   </div>
   <div class="header-right">
@@ -847,13 +847,22 @@ body {
 /* ═══════════════ STATE ═══════════════ */
 var agents={},activeAgent=null,embedData=null,agentReports={},realtimeEmbedded={};
 
-/* ═══ Fabric Embed (Real-Time Dashboard, preview) — FILL from your Entra app registration ═══
+/* ═══ Fabric Embed (Real-Time Dashboard, preview) — configured SERVER-SIDE ═══
+   Never hardcode an app registration here: this file is public.
    1. Register an Entra app (redirect URI = this portal origin, e.g. http://localhost:8000).
    2. Add delegated permissions Fabric.Embed + KQLDashboard.Read.All, grant admin consent.
-   3. Paste the Application (client) ID and Directory (tenant) ID below, then reload. */
-var FABRIC_EMBED={ clientId:"2fb8b221-ee6d-49c1-b713-37140715020b", tenantId:"92701a21-ddea-4028-ba85-4c1f91fab881" };
-FABRIC_EMBED.enabled = !!(FABRIC_EMBED.clientId && FABRIC_EMBED.clientId.charAt(0)!=='<'
-                       && FABRIC_EMBED.tenantId && FABRIC_EMBED.tenantId.charAt(0)!=='<');
+   3. Export FABRIC_EMBED_CLIENT_ID / FABRIC_EMBED_TENANT_ID before starting the portal —
+      the backend serves them through /api/agents (_meta), and they land here at runtime. */
+var FABRIC_EMBED={ clientId:"", tenantId:"", enabled:false };
+window.FABRIC_EMBED=FABRIC_EMBED;
+window.__fabricEmbedConfigured=new Promise(function(resolve){window.__fabricEmbedResolve=resolve;});
+function applyFabricEmbedConfig(meta){
+  FABRIC_EMBED.clientId=(meta&&meta.embedClientId)||'';
+  FABRIC_EMBED.tenantId=(meta&&meta.embedTenantId)||'';
+  FABRIC_EMBED.enabled=!!(FABRIC_EMBED.clientId&&FABRIC_EMBED.tenantId);
+  if(window.__fabricEmbedResolve){window.__fabricEmbedResolve(FABRIC_EMBED.enabled);window.__fabricEmbedResolve=null;}
+  return FABRIC_EMBED.enabled;
+}
 
 function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function timeNow(){var d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
@@ -884,12 +893,13 @@ document.addEventListener('keydown',function(e){
 async function init(){
   try{
     var r=await fetch('/api/agents');agents=await r.json();
+    applyFabricEmbedConfig(agents._meta);
     var keys=Object.keys(agents).filter(function(k){return k!=='_meta';});
     var sa=document.getElementById('statAgents');if(sa)sa.textContent=keys.length;
     var totalPages=keys.reduce(function(n,k){return n+(agents[k].reportPages||[]).length;},0);
     var sp=document.getElementById('statPages');if(sp)sp.textContent=totalPages;
     renderCards();animateCounters();
-  }catch(e){console.error('Init failed:',e);}
+  }catch(e){applyFabricEmbedConfig(null);console.error('Init failed:',e);}
   refreshHealth();
 }
 
@@ -1187,8 +1197,9 @@ function loadFabricEmbed(key){
   if(!FABRIC_EMBED.enabled){
     fb.style.display='flex';co.style.display='none';
     fb.innerHTML='<div class="fallback-icon">&#128225;</div><h3>Temps Réel — configuration requise</h3>'+
-      '<p>Renseigne <code>clientId</code> et <code>tenantId</code> (app registration Entra) dans <code>FABRIC_EMBED</code> (static/index.html), '+
-      'ajoute les permissions déléguées <code>Fabric.Embed</code> + <code>KQLDashboard.Read.All</code>, puis recharge.</p>';
+      '<p>Exporte <code>FABRIC_EMBED_CLIENT_ID</code> et <code>FABRIC_EMBED_TENANT_ID</code> (app registration Entra) '+
+      'avant de démarrer le portail, ajoute les permissions déléguées <code>Fabric.Embed</code> + '+
+      '<code>KQLDashboard.Read.All</code>, puis recharge.</p>';
     return;
   }
   if(realtimeEmbedded[key])return;
@@ -1598,11 +1609,14 @@ init();
 <!-- ═══════════════ Fabric Embed SDK loader (ESM, lazy) ═══════════════
      Loads MSAL + @microsoft/fabric-embed from an ESM CDN and exposes
      window.FabricEmbed.embed(container, {clientId, tenantId, workspaceId, itemId}).
-     Only activates when FABRIC_EMBED.clientId/tenantId are filled in the main script. -->
+     Only activates once the backend has supplied FABRIC_EMBED_CLIENT_ID / FABRIC_EMBED_TENANT_ID
+     through /api/agents (_meta). -->
 <script type="module">
 (async function(){
   try{
-    if(!window.FABRIC_EMBED || !window.FABRIC_EMBED.enabled) return; // config prompt handled in main JS
+    if(!window.__fabricEmbedConfigured) return;
+    const configured = await window.__fabricEmbedConfigured;
+    if(!configured) return; // config prompt handled in main JS
     // jsDelivr +esm = single self-contained bundle per package (robust vs esm.sh cascade).
     const [msalMod, feMod] = await Promise.all([
       import('https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/+esm'),

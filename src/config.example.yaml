@@ -1,8 +1,8 @@
-# Live Event Center — Configuration (EXAMPLE)
-# LEC demo: Fabric Graph + Ontology + Operations Agent over live event-operations data.
+# Live Event Operations — Configuration (EXAMPLE)
+# LEO demo: Fabric Graph + Ontology + Operations Agent over live event-operations data.
 # Copy this file to config.yaml and fill in your own capacity_id and tenant_id.
 
-workspace_name: "Live Event Center"
+workspace_name: "Live Event Operations"
 capacity_id: "<YOUR_FABRIC_CAPACITY_ID>"               # GUID of your Fabric (F-SKU) capacity
 fabric_api_base: "https://api.fabric.microsoft.com/v1"
 tenant_id: "<YOUR_TENANT_ID>"                          # your Entra tenant GUID
@@ -78,12 +78,12 @@ zones:
   - { id: "ZONE-VIP",     name: "VIP Lounge",       room_type: "VIP",         surface_m2: 250,  capacity: 200,  premium: true }
 
 customers:
-  - { id: "CUST-001", name: "Microsoft",         segment: "Tech",    vip: true }
-  - { id: "CUST-002", name: "L'Oreal",           segment: "Beauty",  vip: true }
-  - { id: "CUST-003", name: "Decathlon",         segment: "Retail",  vip: false }
-  - { id: "CUST-004", name: "BNP Paribas",       segment: "Finance", vip: false }
+  - { id: "CUST-001", name: "Northwind Tech",    segment: "Tech",    vip: true }
+  - { id: "CUST-002", name: "Lumiere Beauty",    segment: "Beauty",  vip: true }
+  - { id: "CUST-003", name: "Summit Sports",     segment: "Retail",  vip: false }
+  - { id: "CUST-004", name: "Meridian Bank",     segment: "Finance", vip: false }
   - { id: "CUST-005", name: "GreenTech Startup", segment: "Startup", vip: false }
-  - { id: "CUST-006", name: "Ville de Paris",    segment: "Public",  vip: true }
+  - { id: "CUST-006", name: "City of Aurora",    segment: "Public",  vip: true }
 
 sessions:
   - { id: "SES-AIGOOD",  name: "AI for Good",           zone_id: "ZONE-ASPEN",   capacity: 600,  track: "Impact",   sponsor_id: "CUST-001" }

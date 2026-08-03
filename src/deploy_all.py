@@ -16,7 +16,7 @@ USAGE
   python deploy_all.py --no-warmup        # deploy only
 
 TENANT: az silently flips to another tenant. Set `az_subscription` in config.yaml
-(the subscription name, e.g. "ME-MngEnvMCAP935617-cdroinat-1") and this script runs
+(the Azure subscription display name, e.g. "My-Fabric-Subscription") and this script runs
 `az account set` first. Without it you get 404 EntityNotFound on the wrong tenant.
 """
 import os, sys, winreg

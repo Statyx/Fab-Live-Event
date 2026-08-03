@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  no-client-leak:
+    name: No client / credential leak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # This repo is public. Any real customer name or hardcoded Entra/Fabric identifier
+      # is a leak, so the build fails loudly instead of quietly shipping it.
+      # The names below are written with a single letter parenthesised (ERE groups match the
+      # same string) so that this guard file is not itself a hit for its own scan.
+      - name: Scan for client names
+        run: |
+          PATTERN='p(u)blicis|v(i)vatech|o(r)ange|a(i)r.?liquide|t(e)chnip|f(o)rvia|v(e)olia|a(r)kema|c(a)pgemini|e(i)ffage|o(p)mobility'
+          if grep -rniE "$PATTERN" \
+               --exclude-dir=.git \
+               --exclude-dir=node_modules \
+               --exclude-dir=__pycache__ \
+               . ; then
+            echo "::error::A known client name appears in the repository. Anonymise it before merging."
+            exit 1
+          fi
+          echo "OK - no client name found."
+
+      - name: Scan for hardcoded clientId / tenantId GUIDs
+        run: |
+          PATTERN='(client_?id|tenant_?id)["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
+          if grep -rniE "$PATTERN" \
+               --exclude-dir=.git \
+               --exclude-dir=node_modules \
+               --exclude-dir=__pycache__ \
+               --exclude-dir=workflows \
+               . ; then
+            echo "::error::A clientId/tenantId GUID is hardcoded. Inject it from the environment instead."
+            exit 1
+          fi
+          echo "OK - no hardcoded clientId/tenantId."
+
+  tests:
+    name: Offline test gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: python -m pytest tests/ -v --tb=short

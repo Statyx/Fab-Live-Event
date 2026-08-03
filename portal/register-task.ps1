@@ -8,7 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$taskName = "LEC_Portal_Service"
+$taskName = "LEO_Portal_Service"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $serviceScript = Join-Path $root "service.ps1"
 
@@ -34,7 +34,7 @@ $trigger = New-ScheduledTaskTrigger -AtLogOn
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartInterval (New-TimeSpan -Minutes 1) -RestartCount 3 -ExecutionTimeLimit (New-TimeSpan -Days 365) -StartWhenAvailable
 
 # Register (current user, no elevated privileges needed)
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description 'Live Event Center Portal - auto-start FastAPI on localhost:8000' -Force | Out-Null
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description 'Live Event Operations Portal - auto-start FastAPI on localhost:8000' -Force | Out-Null
 
 Write-Host '  Task registered.' -ForegroundColor Green
 Write-Host '  Trigger: At logon (current user)' -ForegroundColor Green

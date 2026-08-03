@@ -1,4 +1,4 @@
-# Copilot Instructions — Publicis Live Event Center (LEC demo)
+# Copilot Instructions — Live Event Operations (LEO demo)
 
 ## Mandatory Testing Gate
 Before running ANY `deploy_*.py`, generator, or artifact script:
@@ -9,8 +9,8 @@ If ANY test fails → **STOP. Fix the code first. Do not proceed.**
 
 ## Project Context
 - Python 3.12, Windows. Fabric API deploy scripts in `src/` (idempotent via `state.json`).
-- LEC demo: **Fabric Graph + Ontology + Operations Agent** over live event-operations data
-  (Publicis Live, VivaTech-scale). Real-time (Eventhouse/KQL) like the Network projects. Foundry = phase 2.
+- LEO demo: **Fabric Graph + Ontology + Operations Agent** over live event-operations data
+  (large-scale conference scale). Real-time (Eventhouse/KQL). Foundry = phase 2.
 - Workspace name + capacity_id + tenant_id are read from `src/config.yaml` (copy `src/config.example.yaml`).
 - Design source of truth: `docs/ARCHITECTURE.md`.
 
@@ -29,7 +29,7 @@ One command: `python deploy_all.py` (idempotent, tenant-guarded, ends with a war
 - Culprit = access gate **GATE-05** (serves **Salle Aspen**) → **congestion peak** (queue wait ≈ 25 min).
 - Aspen saturates (occupancy > 90, density > 4, comfort collapses) during flagship sessions
   **AI for Good / Beauty & AI / Smart City 2030**.
-- Impact: sessions → **3 VIP sponsors** (Microsoft, L'Oréal, Ville de Paris).
+- Impact: sessions → **3 VIP sponsors** (Northwind Tech, Lumiere Beauty, City of Aurora).
 - Answers the two brief questions: *was the session full?* / *when & where was the wait time highest?*
 
 ## The 4 persona reports = KQL Dashboard pages

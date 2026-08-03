@@ -1,4 +1,4 @@
-# Architecture — Publicis Live Event Center (LEC)
+# Architecture — Live Event Operations (LEO)
 
 > **Thesis**: a single **Fabric IQ ontology** (knowledge graph) unifies static topology
 > (BIM zones, gates, sessions, sponsors) with **live telemetry** (occupancy, queue wait).
@@ -57,7 +57,7 @@ capacity, is_premium), `dim_gates`, `dim_sensors`, `dim_sessions`, `dim_customer
 Access gate **GATE-05** (serving **Salle Aspen**) hits a **congestion peak** (queue ≈ 25 min).
 Aspen saturates (occupancy > 90, density > 4, comfort collapses) during the flagship sessions
 **AI for Good / Beauty & AI / Smart City 2030**. Impact traverses Gate → Zone → Session →
-Customer, surfacing **3 VIP sponsors** (Microsoft, L'Oréal, Ville de Paris). This answers the
+Customer, surfacing **3 VIP sponsors** (Northwind Tech, Lumiere Beauty, City of Aurora). This answers the
 brief's two demo questions directly.
 
 ## Deploy order (strict)

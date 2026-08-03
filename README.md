@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ Live Event Center — Publicis Live
+# ⚡ Live Event Operations
 
 ### Real-time event operations on **Microsoft Fabric** — one ontology, autonomous + interactive agents, and a persona-driven portal.
 
@@ -11,7 +11,7 @@
 ![Portal](https://img.shields.io/badge/Portal-FastAPI-009688?logo=fastapi&logoColor=white)
 ![Deploy](https://img.shields.io/badge/deploy-idempotent-896610)
 
-*A data-first reference for **VivaTech-scale** live events — mirroring the Network Operations architecture, applied to the event domain.*
+*A data-first reference for **large-scale conference** live events — sharing the same RTI reference architecture, applied to the event domain.*
 
 </div>
 
@@ -34,7 +34,7 @@ All of it is wrapped in a **web portal** (FastAPI) with **3 business views** —
 ## 🎬 The storyline — pilot `AMGFL26`
 
 > Access gate **GATE-05** (serving **Salle Aspen**) hits a **congestion peak** — security queue ≈ **25 min**.
-> Aspen **saturates** during the flagship sessions *AI for Good / Beauty & AI / Smart City 2030* → **3 VIP sponsors at risk** (Microsoft, L'Oréal, Ville de Paris).
+> Aspen **saturates** during the flagship sessions *AI for Good / Beauty & AI / Smart City 2030* → **3 VIP sponsors at risk** (Northwind Tech, Lumiere Beauty, City of Aurora).
 
 It answers the brief's two demo questions:
 
@@ -73,7 +73,7 @@ flowchart LR
 ## 🚀 Quick start
 
 ```powershell
-# 1. Config (capacity / tenant are pre-filled in this repo)
+# 1. Config — then fill in YOUR capacity_id and tenant_id (nothing is pre-filled: this repo is public)
 copy src\config.example.yaml src\config.yaml
 
 # 2. ✅ Mandatory test gate — never deploy on red
@@ -85,6 +85,11 @@ python src\deploy_all.py
 # 4. Launch the portal → http://localhost:8000
 .\portal\start.ps1
 ```
+
+> The portal resolves every Fabric ID from `src/state.json` (written by the deploy pipeline) or from
+> `WORKSPACE_ID` / `REPORT_ID` / `DATASET_ID` / `DATA_AGENT_ID` / `DASHBOARD_ID` env vars. There is no
+> hardcoded fallback — a missing ID fails fast with an explicit error. The optional Real-Time embed
+> needs your own Entra app registration, supplied via `FABRIC_EMBED_CLIENT_ID` / `FABRIC_EMBED_TENANT_ID`.
 
 Useful flags:
 
@@ -167,7 +172,19 @@ tests/          offline smoke gate (pytest) — run before every deploy
 docs/           ARCHITECTURE.md
 taskflow/       Fabric Task Flow (import via portal)
 presentation/   architecture-vision deck generator (pptxgenjs)
-data/raw/       generated CSVs (gitignored)
+data/raw/       generated CSVs
+```
+
+### 🎞️ Architecture deck
+
+The deck is **generated, never committed** (`presentation/*.pptx` is gitignored — an Office-exported
+PPTX can be an OLE/MIP-encrypted container carrying a rights-management envelope bound to the
+authoring tenant, which is both a metadata leak and unreadable for anyone who clones the repo):
+
+```powershell
+cd presentation
+npm install
+node build_deck.js          # → presentation/Architecture_Vision.pptx
 ```
 
 ---
@@ -176,7 +193,8 @@ data/raw/       generated CSVs (gitignored)
 
 - ✅ **Test gate is mandatory** — `python -m pytest tests/ -v` before any `deploy_*.py`. On red: **stop, fix the code**.
 - ♻️ **Idempotent deploys** — every step reads/writes `src/state.json`; re-running is safe.
-- 🔐 **Secrets never committed** — `src/config.yaml`, `src/state.json`, `.vscode/mcp.json` are gitignored (use the `*.example` templates).
+- 🔐 **Secrets never committed** — `src/config.yaml`, `src/state.json`, `.vscode/mcp.json` are gitignored (use the `*.example` templates). No tenant / workspace / app-registration ID is hardcoded anywhere; CI enforces this.
+- 🧪 **Synthetic data only** — every organisation, venue and sponsor in this repo is fictional.
 - ⚡ **F2+ capacity** — resume the capacity before a deploy/demo (Ontology / Graph / agents need it).
 - 🧠 **Reports are Legacy PBIX** — see the report gotchas below.
 
@@ -213,5 +231,5 @@ data/raw/       generated CSVs (gitignored)
 ---
 
 <div align="center">
-<sub>Built for Publicis Live · Microsoft Fabric IQ demo · confidential — internal use.</sub>
+<sub>Microsoft Fabric IQ demo · synthetic data only.</sub>
 </div>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate synthetic Live Event (Publicis Live-style) data for the LEC demo.
+Generate synthetic Live Event (large-event) data for the LEO demo.
 
 Produces:
   Topology (Lakehouse / NonTimeSeries) → data/raw/dim_*.csv, fact_observations.csv
@@ -35,7 +35,15 @@ OBS_CATEGORIES = ["Crowd", "Safety", "Cleanliness", "Technical", "Access"]
 
 
 def load_config():
-    with open(SCRIPT_DIR / "config.yaml", "r", encoding="utf-8") as f:
+    """Load src/config.yaml, falling back to the committed src/config.example.yaml.
+
+    The example holds the full synthetic topology, so the generator (and the offline
+    test gate) works on a fresh clone before anyone copies the file.
+    """
+    path = SCRIPT_DIR / "config.yaml"
+    if not path.exists():
+        path = SCRIPT_DIR / "config.example.yaml"
+    with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

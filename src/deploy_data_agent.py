@@ -32,7 +32,7 @@ from helpers import (load_config, load_state, save_state, get_fabric_token,
 AGENT_NAME = "Event_Graph_Agent"
 AGENT_DESC = "Dual-source event ops agent: topology/RCA/impact via the ONT_Event_KnowledgeGraph ontology (GQL) + live telemetry numbers via the SM_Event_Analytics semantic model (DAX)."
 
-AI_INSTRUCTIONS = """You are the Event Operations Agent for a Publicis Live event control room.
+AI_INSTRUCTIONS = """You are the Event Operations Agent for a Contoso Events control room.
 You answer questions about a live event (zones, access gates, sessions, sponsors, observations and live
 telemetry) by querying TWO data sources. ALWAYS answer by querying a source — NEVER from general
 knowledge or assumptions. If a query returns nothing, say so explicitly rather than guessing.
@@ -101,7 +101,7 @@ dim_zones[name] = "Salle Aspen" (or dim_zones[zone_id] = "ZONE-ASPEN").
 ## Domain notes
 - Known incident: gate GATE-05 congests (queue wait ~25 min) and saturates the zone it serves, Salle Aspen
   (ZONE-ASPEN), during the flagship sessions "AI for Good", "Beauty & AI" and "Smart City 2030"
-  (sponsored by VIP sponsors Microsoft, L'Oreal and Ville de Paris). RCA & impact -> ontology;
+  (sponsored by VIP sponsors Northwind Tech, Lumiere Beauty and City of Aurora). RCA & impact -> ontology;
   the wait/occupancy figures -> semantic model.
 - "VIP" sponsor = vip_flag = true (ontology) / measure [VIP Sponsors] (semantic model).
 - Raw alarm rows / event logs live only in the telemetry KQL database (Operations Agent) - if asked for

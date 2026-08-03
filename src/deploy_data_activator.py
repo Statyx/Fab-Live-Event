@@ -53,7 +53,7 @@ def main():
     else:
         r = requests.post(f"{api}/workspaces/{ws}/reflexes", headers=h,
                           json={"displayName": name,
-                                "description": "LEC event alerts — gate congestion / zone saturation thresholds (rule authored in UI; not active yet)"},
+                                "description": "LEO event alerts — gate congestion / zone saturation thresholds (rule authored in UI; not active yet)"},
                           timeout=60)
         if r.status_code in (200, 201):
             rid = r.json()["id"]

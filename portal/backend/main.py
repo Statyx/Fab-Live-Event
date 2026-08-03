@@ -14,21 +14,55 @@ from pydantic import BaseModel
 
 # ── Config ───────────────────────────────────────────────────
 # Read live IDs from src/state.json (source of truth) so the portal never points
-# at a stale/deleted report. Env vars override; hardcoded values are last-resort.
+# at a stale/deleted report. Env vars override. NOTHING is hardcoded: this repo is
+# public, so tenant/workspace/item IDs must never be committed.
+STATE_PATH = Path(__file__).resolve().parents[2] / "src" / "state.json"
+
+
 def _state() -> dict:
     try:
-        sp = Path(__file__).resolve().parents[2] / "src" / "state.json"
-        return json.loads(sp.read_text(encoding="utf-8"))
+        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
+
 _ST = _state()
-WORKSPACE_ID = os.getenv("WORKSPACE_ID") or _ST.get("workspace_id") or "535d5e13-ee94-480a-9bfb-58bb824b40e1"
-REPORT_ID = os.getenv("REPORT_ID") or _ST.get("report_id") or "1c1b6655-1435-4fbb-af02-e672bda0172b"
-DATASET_ID = os.getenv("DATASET_ID") or _ST.get("semantic_model_id") or "a4d0583c-9310-4e51-adac-dd59b75af6c1"
-DATA_AGENT_ID = os.getenv("DATA_AGENT_ID") or _ST.get("data_agent_id") or "48d3a1ab-77c0-48bb-b5fa-f647af9c6aaf"
-DASHBOARD_ID = os.getenv("DASHBOARD_ID") or _ST.get("kql_dashboard_id") or "f0400723-aa08-40a3-bc30-f8729059d851"
+_MISSING: list[str] = []
+
+
+def _required_id(env_var: str, state_key: str) -> str:
+    """Resolve a Fabric item ID from the environment, then from src/state.json.
+
+    No fallback value exists on purpose — a missing ID is a configuration error,
+    not something to paper over with someone else's tenant.
+    """
+    value = os.getenv(env_var) or _ST.get(state_key) or ""
+    if not value:
+        _MISSING.append(f"{env_var} (state.json: {state_key})")
+    return value
+
+
+WORKSPACE_ID = _required_id("WORKSPACE_ID", "workspace_id")
+REPORT_ID = _required_id("REPORT_ID", "report_id")
+DATASET_ID = _required_id("DATASET_ID", "semantic_model_id")
+DATA_AGENT_ID = _required_id("DATA_AGENT_ID", "data_agent_id")
+DASHBOARD_ID = _required_id("DASHBOARD_ID", "kql_dashboard_id")
+
+if _MISSING:
+    raise RuntimeError(
+        "Portal configuration incomplete — the following Fabric IDs could not be resolved:\n  - "
+        + "\n  - ".join(_MISSING)
+        + f"\n\nRun the deploy pipeline (python src/deploy_all.py) so that {STATE_PATH} is populated, "
+        "or export the environment variables above before starting the portal.\n"
+        "See src/state.example.json for the expected shape of state.json."
+    )
+
 CLUSTER_URI = os.getenv("QUERY_SERVICE_URI") or _ST.get("query_service_uri") or ""
+
+# Fabric Embed (Real-Time Dashboard preview) — your own Entra app registration.
+# Supplied by the environment only; the frontend receives them via /api/agents (_meta).
+FABRIC_EMBED_CLIENT_ID = os.getenv("FABRIC_EMBED_CLIENT_ID", "")
+FABRIC_EMBED_TENANT_ID = os.getenv("FABRIC_EMBED_TENANT_ID", "")
 
 
 def _eventhouse_db() -> str:
@@ -214,7 +248,7 @@ async def kusto_query(csl: str) -> list[dict]:
 
 
 # ── App ──────────────────────────────────────────────────────
-app = FastAPI(title="Live Event Center API")
+app = FastAPI(title="Live Event Operations API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -340,6 +374,9 @@ async def list_agents():
             "workspaceId": WORKSPACE_ID,
             "dashboardId": DASHBOARD_ID,
             "clusterUri": CLUSTER_URI,
+            # Fabric Embed app registration — injected from the environment, never committed.
+            "embedClientId": FABRIC_EMBED_CLIENT_ID,
+            "embedTenantId": FABRIC_EMBED_TENANT_ID or tenant_id,
         }
     }
     for key, cfg in AGENTS.items():

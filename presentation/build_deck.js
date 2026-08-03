@@ -1,4 +1,4 @@
-// Publicis Live — Live Event Center — Architecture Vision deck. Consulting-grade style
+// Live Event Operations — Architecture Vision deck. Consulting-grade style
 // (light canvas + white cards, color = meaning, Segoe UI, left→right pipeline architecture).
 // Run: npm install && node build_deck.js
 const pptxgen = require("pptxgenjs");
@@ -26,8 +26,8 @@ const W = 13.333, H = 7.5;
 const pres = new pptxgen();
 pres.defineLayout({ name: "W", width: W, height: H });
 pres.layout = "W";
-pres.author = "Clément Droinat";
-pres.title = "Publicis Live — Live Event Operations — Architecture Vision";
+pres.author = "Live Event Operations";
+pres.title = "Live Event Operations — Architecture Vision";
 
 const bg = (s, c) => (s.background = { color: c });
 function topbar(s) { s.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.14, fill: { color: C.teal }, line: { type: "none" } }); }
@@ -37,7 +37,7 @@ function pageTitle(s, kick, ttl) {
   s.addText(ttl, { x: 0.83, y: 0.78, w: 11.8, h: 0.55, fontFace: FS, fontSize: 26, bold: true, color: C.ink });
 }
 function foot(s, n) {
-  s.addText("LEC · Live Event Operations on Microsoft Fabric · Publicis Live", { x: 0.55, y: H - 0.4, w: 10, h: 0.3, fontFace: F, fontSize: 9, color: C.muted });
+  s.addText("LEO · Live Event Operations on Microsoft Fabric", { x: 0.55, y: H - 0.4, w: 10, h: 0.3, fontFace: F, fontSize: 9, color: C.muted });
   s.addText(`${n}`, { x: W - 0.85, y: H - 0.4, w: 0.4, h: 0.3, fontFace: F, fontSize: 9, color: C.muted, align: "right" });
 }
 function block(s, x, y, w, h, accent, icon, header, bullets, opts = {}) {
@@ -63,7 +63,7 @@ function arrow(s, x, y, w, c = C.teal) { s.addShape(pres.shapes.LINE, { x, y, w,
 
   s.addText("MICROSOFT FABRIC · FABRIC IQ", { x: 0.8, y: 1.55, w: 9, h: 0.4, fontFace: FS, fontSize: 13, color: C.teal, charSpacing: 4, bold: true });
   s.addText("Live Event Operations", { x: 0.75, y: 1.95, w: 10.0, h: 1.0, fontFace: FS, fontSize: 40, bold: true, color: C.white });
-  s.addText("Publicis Live · Architecture Vision", { x: 0.78, y: 2.95, w: 10, h: 0.6, fontFace: F, fontSize: 22, color: C.teal });
+  s.addText("Architecture Vision", { x: 0.78, y: 2.95, w: 10, h: 0.6, fontFace: F, fontSize: 22, color: C.teal });
   const pills = [["Detection","real-time crowd & queues",C.red],["Root cause","natural-language RCA",C.teal],["Business impact","VIP sponsors at risk",C.yellow]];
   pills.forEach((p,i)=>{ const x=0.8+i*3.0;
     s.addShape(pres.shapes.ROUNDED_RECTANGLE,{x,y:3.95,w:2.8,h:1.05,rectRadius:0.06,fill:{color:"221A4A"},line:{color:"31285C",width:1}});
@@ -72,7 +72,7 @@ function arrow(s, x, y, w, c = C.teal) { s.addShape(pres.shapes.LINE, { x, y, w,
     s.addText(p[1],{x:x+0.2,y:4.5,w:2.5,h:0.4,fontFace:F,fontSize:11,color:"B4AAD8"});
   });
   s.addShape(pres.shapes.RECTANGLE, { x: 0.82, y: 5.55, w: 2.4, h: 0.035, fill: { color: C.teal }, line: { type: "none" } });
-  s.addText([{ text: "Clément Droinat", options: { bold: true, color: C.white, breakLine: true } }, { text: "Solution Engineer · Data & AI", options: { color: "B4AAD8" } }],
+  s.addText([{ text: "Solution Engineering", options: { bold: true, color: C.white, breakLine: true } }, { text: "Data & AI", options: { color: "B4AAD8" } }],
     { x: 0.8, y: 5.7, w: 9, h: 0.7, fontFace: F, fontSize: 13 });
 })();
 
@@ -187,7 +187,7 @@ function arrow(s, x, y, w, c = C.teal) { s.addShape(pres.shapes.LINE, { x, y, w,
     ["GATE-05", "Access gate · Aspen", "queue ≈ 25 min", C.red],
     ["Salle Aspen", "zone saturates", "occupancy > 90 · density up", C.yellow],
     ["Sessions", "AI for Good", "Beauty & AI · Smart City", C.teal],
-    ["3 VIP sponsors", "Microsoft", "L'Oreal · Ville de Paris", C.green],
+    ["3 VIP sponsors", "Northwind Tech", "Lumiere Beauty · City of Aurora", C.green],
   ];
   chain.forEach((c, i) => { const x = 0.55 + i * 3.18;
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 2.3, w: 2.75, h: 2.15, rectRadius: 0.06, fill: { color: C.card }, line: { color: C.line, width: 1 }, shadow: { type: "outer", color: "8A97A6", blur: 7, offset: 2, angle: 90, opacity: 0.18 } });
@@ -264,7 +264,7 @@ function arrow(s, x, y, w, c = C.teal) { s.addShape(pres.shapes.LINE, { x, y, w,
     { text: "   →   ", options: { color: "B4AAD8" } },
     { text: "quantified sponsor impact", options: { color: C.yellow, bold: true } },
   ], { x: 0.8, y: 4.5, w: 11.7, h: 0.6, fontFace: F, fontSize: 18 });
-  s.addText("Clément Droinat · Solution Engineer, Data & AI", { x: 0.8, y: 6.4, w: 11.7, h: 0.4, fontFace: F, fontSize: 13, color: "B4AAD8" });
+  s.addText("Solution Engineering · Data & AI", { x: 0.8, y: 6.4, w: 11.7, h: 0.4, fontFace: F, fontSize: 13, color: "B4AAD8" });
 })();
 
-pres.writeFile({ fileName: "LEC_Architecture_Vision.pptx" }).then(f => console.log("OK:", f));
+pres.writeFile({ fileName: "Architecture_Vision.pptx" }).then(f => console.log("OK:", f));

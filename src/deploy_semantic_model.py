@@ -447,7 +447,7 @@ def main():
             print("   creating new model...")
             resp = requests.post(f"{API_BASE}/workspaces/{ws_id}/items", headers=headers,
                                  json={"displayName": sm_name, "type": "SemanticModel",
-                                       "description": "Live Event Center — real-time event operations analytics (Direct Lake)",
+                                       "description": "Live Event Operations — real-time event operations analytics (Direct Lake)",
                                        "definition": definition})
 
     if resp.status_code in (200, 201):

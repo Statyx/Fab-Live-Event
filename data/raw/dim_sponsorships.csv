@@ -1,7 +1,7 @@
 sponsorship_id,name,package_tier,customer_id,zone_id
-SP-001,Microsoft Booth,Platinum,CUST-001,ZONE-ASPEN
-SP-002,L'Oreal Booth,Platinum,CUST-002,ZONE-ASPEN
-SP-003,Decathlon Booth,Silver,CUST-003,ZONE-LAB
-SP-004,BNP Paribas Booth,Silver,CUST-004,ZONE-BILAT
+SP-001,Northwind Tech Booth,Platinum,CUST-001,ZONE-ASPEN
+SP-002,Lumiere Beauty Booth,Platinum,CUST-002,ZONE-ASPEN
+SP-003,Summit Sports Booth,Silver,CUST-003,ZONE-LAB
+SP-004,Meridian Bank Booth,Silver,CUST-004,ZONE-BILAT
 SP-005,GreenTech Startup Booth,Silver,CUST-005,ZONE-STARTUP
-SP-006,Ville de Paris Booth,Platinum,CUST-006,ZONE-ASPEN
+SP-006,City of Aurora Booth,Platinum,CUST-006,ZONE-ASPEN

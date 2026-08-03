@@ -10,6 +10,12 @@ venv/
 # Node (presentation/)
 node_modules/
 
+# Generated decks — rebuild with `node presentation/build_deck.js` (never commit the binary).
+# A PPTX exported from Office may be an OLE/MIP-encrypted container (magic D0CF11E0) carrying a
+# rights-management envelope bound to the authoring tenant: un-reviewable, un-greppable, and
+# unreadable for anyone who clones the repo.
+presentation/*.pptx
+
 # Scratch / logs (terminal capture files used during deploys)
 *.log
 _*.log
