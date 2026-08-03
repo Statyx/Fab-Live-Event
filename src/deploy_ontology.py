@@ -9,7 +9,7 @@ so the ontology unifies batch topology + live telemetry in one semantic layer.
 NOTE: deploying via REST does NOT populate the child Graph Model — run deploy_graph.py
 afterwards (build + push the graph definition + RefreshGraph). See graph-agent.
 """
-import sys, json, base64, hashlib, uuid
+import os, sys, json, base64, hashlib, uuid
 from platform_env import bootstrap
 bootstrap()
 

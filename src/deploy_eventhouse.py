@@ -4,7 +4,7 @@ Create the Eventhouse + KQL Database + telemetry KQL tables (streaming-ingestion
 The KQL database name == the eventhouse name (auto-created). Saves eventhouse_id,
 kql_database_id, query_service_uri to state.
 """
-import sys, time
+import os, sys, time
 from platform_env import bootstrap
 bootstrap()
 

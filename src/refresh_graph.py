@@ -15,7 +15,7 @@ injection needs NO graph refresh.
 
     python refresh_graph.py
 """
-import sys
+import os, sys
 from platform_env import bootstrap
 bootstrap()
 

@@ -8,7 +8,7 @@ Only TOPOLOGY tables go here (dim_*, fact_tickets). Telemetry goes to the Eventh
 OneLake upload uses a single reusable http.client.HTTPSConnection (3-step DFS:
 PUT create -> PATCH append -> PATCH flush) — requests/urllib3 hang on OneLake DFS.
 """
-import sys, json, subprocess, http.client
+import os, sys, json, subprocess, http.client
 from platform_env import bootstrap
 bootstrap()
 

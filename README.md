@@ -7,7 +7,7 @@
 ![Microsoft Fabric](https://img.shields.io/badge/Microsoft-Fabric-0078D4?logo=microsoft&logoColor=white)
 ![Fabric IQ](https://img.shields.io/badge/Fabric_IQ-Ontology_+_Graph-6242C9)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-36_passing-2E9E44)
+![Tests](https://img.shields.io/badge/tests-38_passing-2E9E44)
 ![Portal](https://img.shields.io/badge/Portal-FastAPI-009688?logo=fastapi&logoColor=white)
 ![Deploy](https://img.shields.io/badge/deploy-idempotent-896610)
 
@@ -77,7 +77,7 @@ flowchart LR
 copy src\config.example.yaml src\config.yaml
 
 # 2. ✅ Mandatory test gate — never deploy on red
-python -m pytest tests/ -v --tb=short          # 36/36 offline
+python -m pytest tests/ -v --tb=short          # 38/38 offline
 
 # 3. Deploy everything (idempotent — generates data, then ends with a warm-up)
 python src\deploy_all.py
@@ -238,9 +238,12 @@ CI runs the test gate on `ubuntu-latest`.
 
 `src/platform_env.py` is the single place that deals with platform differences. It is kept
 **identical to the twin repo `Fab-Network-Operations`** — same module name, same API, same
-semantics, so both applications of the reference architecture answer this the same way:
+semantics, so both applications of the reference architecture answer this the same way.
+Every script under `src/` opens with the same canonical 3-line prologue (only the first line
+varies, to keep each script's own stdlib imports):
 
 ```python
+import os, sys
 from platform_env import bootstrap
 bootstrap()
 ```

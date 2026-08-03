@@ -15,7 +15,7 @@ Intended rule (author in UI, leave STOPPED until ready):
   Action : Email / Teams "Congestion detected at gate {gate_id}"
   State  : shouldRun = false (stopped) until you flip it on for the demo
 """
-import sys
+import os, sys
 from platform_env import bootstrap
 bootstrap()
 

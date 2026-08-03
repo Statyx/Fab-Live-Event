@@ -10,7 +10,7 @@ FOUR persona pages (the 4 target audiences of the brief):
   Chefs de projet   — session/zone fill, comfort, observations
   Client            — premium/VIP zones, sponsored-zone attendance
 """
-import sys, uuid
+import os, sys, uuid
 from platform_env import bootstrap
 bootstrap()
 

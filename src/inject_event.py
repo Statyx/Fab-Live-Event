@@ -17,7 +17,7 @@ Critical CONGESTION alarm + event log fire once it crosses the threshold.
   python inject_event.py --loop          # animate (Ctrl+C to stop), 15s ticks, 8-cycle ramp
   python inject_event.py --loop --interval 10 --ramp 6 --cycles 40
 """
-import sys, argparse, time
+import os, sys, argparse, time
 from platform_env import bootstrap
 bootstrap()
 

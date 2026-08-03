@@ -13,7 +13,7 @@ After this, the semantic model can be Direct Lake over BOTH the topology Delta t
 telemetry shortcuts. Mirroring latency is ~5 min (TargetLatencyInMinutes=5); run
 `.show table <T> mirroring operations` — Latency 00:00:00 means fully mirrored.
 """
-import sys, time
+import os, sys, time
 from platform_env import bootstrap
 bootstrap()
 

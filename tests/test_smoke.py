@@ -78,6 +78,43 @@ def test_find_executable_uses_the_standard_path(tmp_path, monkeypatch):
     assert platform_env.find_executable("no-such-executable-fab-live-event") is None
 
 
+def test_scripts_share_the_canonical_prologue():
+    """Every script bootstrapping the environment must use the same 3 lines.
+
+    `src/platform_env.py` is shared verbatim with the sister repository, so the
+    call-site prologue has to stay byte-identical on both sides.
+    """
+    prologue = re.compile(
+        r"^import os, sys[^\n]*\n"
+        r"from platform_env import bootstrap\n"
+        r"bootstrap\(\)\n",
+        re.MULTILINE,
+    )
+    scripts = [p for p in _py_files()
+               if p.name != "platform_env.py"
+               and "from platform_env import bootstrap" in p.read_text(encoding="utf-8")]
+    assert scripts, "no script bootstraps platform_env — did the prologue get renamed?"
+    for py in scripts:
+        assert prologue.search(py.read_text(encoding="utf-8")), \
+            f"{py.name}: non-canonical platform_env prologue"
+
+
+def test_az_is_never_launched_with_a_bare_shell_true():
+    """`shell=True` + an argv list drops every argument on POSIX — use AZ_NEEDS_SHELL."""
+    offenders = []
+    for py in _py_files():
+        tree = ast.parse(py.read_text(encoding="utf-8"), filename=str(py))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            for kw in node.keywords:
+                if (kw.arg == "shell"
+                        and isinstance(kw.value, ast.Constant)
+                        and kw.value.value is True):
+                    offenders.append(f"{py.name}:{node.lineno}")
+    assert not offenders, f"hard-coded shell=True in: {offenders}"
+
+
 # ── Config / state ──────────────────────────────────────────────
 def _config_path() -> pathlib.Path:
     """Prefer the local (gitignored) config.yaml, fall back to the committed example."""
