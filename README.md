@@ -7,7 +7,7 @@
 ![Microsoft Fabric](https://img.shields.io/badge/Microsoft-Fabric-0078D4?logo=microsoft&logoColor=white)
 ![Fabric IQ](https://img.shields.io/badge/Fabric_IQ-Ontology_+_Graph-6242C9)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-32_passing-2E9E44)
+![Tests](https://img.shields.io/badge/tests-35_passing-2E9E44)
 ![Portal](https://img.shields.io/badge/Portal-FastAPI-009688?logo=fastapi&logoColor=white)
 ![Deploy](https://img.shields.io/badge/deploy-idempotent-896610)
 
@@ -77,7 +77,7 @@ flowchart LR
 copy src\config.example.yaml src\config.yaml
 
 # 2. ✅ Mandatory test gate — never deploy on red
-python -m pytest tests/ -v --tb=short          # 32/32 offline
+python -m pytest tests/ -v --tb=short          # 35/35 offline
 
 # 3. Deploy everything (idempotent — generates data, then ends with a warm-up)
 python src\deploy_all.py
@@ -227,6 +227,31 @@ node build_deck.js          # → presentation/Architecture_Vision.pptx
 - **Python 3.12**, **Azure CLI** logged in to the right tenant, a Fabric **F2+** capacity.
 - `pip install -r requirements.txt` (root) and `pip install -r portal/backend/requirements.txt` (portal).
 - **Fabric IQ** (Ontology + Graph) preview enabled on the tenant.
+
+---
+
+## 💻 Platform support
+
+Everything under `src/` — data generation, the whole `deploy_all.py` pipeline, `refresh_graph.py`,
+`inject_event.py`, `validate_powerbi.py` and the test suite — runs on **Windows, macOS and Linux**.
+CI runs the test gate on `ubuntu-latest`.
+
+`src/path_utils.py` is the single place that deals with platform differences:
+
+| | Windows | macOS / Linux |
+|---|---|---|
+| `restore_path()` | rebuilds `PATH` from the registry (machine then user `Path`) — venv activation can wipe it | no-op: the process `PATH` is already authoritative |
+| `which()` | registry self-heal, then `shutil.which` | `shutil.which` |
+| `az` subprocess calls | `shell=True` (`az` is a `.cmd`) | `shell=False` on the argv list |
+
+**Windows-only by nature** (no cross-platform equivalent shipped):
+
+- `portal/start.ps1`, `portal/service.ps1`, `portal/register-task.ps1` — PowerShell launchers / Windows
+  scheduled-task registration for the FastAPI portal. On macOS / Linux start the portal directly:
+  ```bash
+  cd portal/backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000
+  ```
+- The README command samples use PowerShell syntax; swap `\` for `/` in paths on macOS / Linux.
 
 ---
 

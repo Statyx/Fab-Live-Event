@@ -19,18 +19,11 @@ TENANT: az silently flips to another tenant. Set `az_subscription` in config.yam
 (the Azure subscription display name, e.g. "My-Fabric-Subscription") and this script runs
 `az account set` first. Without it you get 404 EntityNotFound on the wrong tenant.
 """
-import os, sys, winreg
-def _restore_path():
-    parts = []
-    for root, sub in [(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
-                      (winreg.HKEY_CURRENT_USER, "Environment")]:
-        try:
-            k = winreg.OpenKey(root, sub); v, _ = winreg.QueryValueEx(k, "Path")
-            parts.append(os.path.expandvars(v)); winreg.CloseKey(k)
-        except Exception: pass
-    if parts: os.environ["PATH"] = ";".join(parts) + ";" + os.environ.get("PATH", "")
-_restore_path()
-if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8")
+import sys
+# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
+from path_utils import IS_WINDOWS, restore_path, configure_stdout
+restore_path()
+configure_stdout()
 
 import argparse
 import importlib
@@ -69,7 +62,7 @@ def ensure_tenant(cfg):
               "(404 EntityNotFound = wrong tenant).")
         return
     try:
-        subprocess.check_call(["az", "account", "set", "--subscription", sub], shell=True)
+        subprocess.check_call(["az", "account", "set", "--subscription", sub], shell=IS_WINDOWS)
         print(f"✓  az subscription set to '{sub}'")
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Could not set az subscription '{sub}': {e}")

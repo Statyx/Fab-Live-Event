@@ -29,6 +29,40 @@ def test_python_compiles(py):
     ast.parse(py.read_text(encoding="utf-8"), filename=str(py))
 
 
+# ── Cross-platform guards (the repo must import on macOS / Linux too) ──
+def test_no_module_level_winreg_import():
+    """`winreg` is Windows-only stdlib: importing it unconditionally breaks macOS/Linux."""
+    offenders = []
+    for py in _py_files():
+        tree = ast.parse(py.read_text(encoding="utf-8"), filename=str(py))
+        for node in tree.body:  # module level only — a guarded import lives deeper
+            if isinstance(node, ast.Import) and any(a.name == "winreg" for a in node.names):
+                offenders.append(py.name)
+    assert not offenders, f"winreg imported unconditionally in: {offenders}"
+
+
+def test_path_utils_falls_back_without_winreg():
+    """Off Windows, restore_path() is a no-op and lookup goes through shutil.which."""
+    import importlib
+    import os
+
+    pu = importlib.import_module("path_utils")
+    real_platform = sys.platform
+    try:
+        sys.platform = "linux"
+        sys.modules["winreg"] = None  # any `import winreg` now raises
+        pu = importlib.reload(pu)
+        assert pu.IS_WINDOWS is False
+        before = os.environ.get("PATH", "")
+        pu.restore_path()
+        assert os.environ.get("PATH", "") == before, "PATH must be untouched off Windows"
+        assert pu.which("no-such-executable-fab-live-event") is None
+    finally:
+        sys.platform = real_platform
+        sys.modules.pop("winreg", None)
+        importlib.reload(pu)
+
+
 # ── Config / state ──────────────────────────────────────────────
 def _config_path() -> pathlib.Path:
     """Prefer the local (gitignored) config.yaml, fall back to the committed example."""

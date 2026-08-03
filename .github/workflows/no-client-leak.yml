@@ -46,9 +46,7 @@ jobs:
 
   tests:
     name: Offline test gate
-    # Windows, because several deploy scripts import `winreg` at module level to read the
-    # Azure CLI token cache. Running them on Linux fails at import time, not on real logic.
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 

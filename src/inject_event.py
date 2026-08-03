@@ -17,18 +17,11 @@ Critical CONGESTION alarm + event log fire once it crosses the threshold.
   python inject_event.py --loop          # animate (Ctrl+C to stop), 15s ticks, 8-cycle ramp
   python inject_event.py --loop --interval 10 --ramp 6 --cycles 40
 """
-import os, sys, winreg, argparse, time
-def _restore_path():
-    parts = []
-    for root, sub in [(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
-                      (winreg.HKEY_CURRENT_USER, "Environment")]:
-        try:
-            k = winreg.OpenKey(root, sub); v, _ = winreg.QueryValueEx(k, "Path")
-            parts.append(os.path.expandvars(v)); winreg.CloseKey(k)
-        except Exception: pass
-    if parts: os.environ["PATH"] = ";".join(parts) + ";" + os.environ.get("PATH", "")
-_restore_path()
-if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8")
+import sys, argparse, time
+# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
+from path_utils import restore_path, configure_stdout
+restore_path()
+configure_stdout()
 
 from pathlib import Path
 from datetime import datetime, timezone

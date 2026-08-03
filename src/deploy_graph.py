@@ -8,18 +8,11 @@ model as deploy_ontology.py, pushes it via updateDefinition, then runs RefreshGr
 
 dataSource paths use the REAL OneLake locations from GET /lakehouses/{lh}/tables.
 """
-import os, sys, winreg, json, base64, hashlib, uuid, time
-def _restore_path():
-    parts = []
-    for root, sub in [(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
-                      (winreg.HKEY_CURRENT_USER, "Environment")]:
-        try:
-            k = winreg.OpenKey(root, sub); v, _ = winreg.QueryValueEx(k, "Path")
-            parts.append(os.path.expandvars(v)); winreg.CloseKey(k)
-        except Exception: pass
-    if parts: os.environ["PATH"] = ";".join(parts) + ";" + os.environ.get("PATH", "")
-_restore_path()
-if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8")
+import sys, json, base64, hashlib, uuid, time
+# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
+from path_utils import restore_path, configure_stdout
+restore_path()
+configure_stdout()
 
 import requests
 from helpers import get_fabric_token, fabric_headers, load_config, load_state

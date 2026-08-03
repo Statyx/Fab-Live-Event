@@ -13,18 +13,11 @@ After this, the semantic model can be Direct Lake over BOTH the topology Delta t
 telemetry shortcuts. Mirroring latency is ~5 min (TargetLatencyInMinutes=5); run
 `.show table <T> mirroring operations` — Latency 00:00:00 means fully mirrored.
 """
-import os, sys, winreg, time
-def _restore_path():
-    parts = []
-    for root, sub in [(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
-                      (winreg.HKEY_CURRENT_USER, "Environment")]:
-        try:
-            k = winreg.OpenKey(root, sub); v, _ = winreg.QueryValueEx(k, "Path")
-            parts.append(os.path.expandvars(v)); winreg.CloseKey(k)
-        except Exception: pass
-    if parts: os.environ["PATH"] = ";".join(parts) + ";" + os.environ.get("PATH", "")
-_restore_path()
-if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8")
+import sys, time
+# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
+from path_utils import restore_path, configure_stdout
+restore_path()
+configure_stdout()
 
 import requests
 from helpers import (load_config, load_state, save_state, get_fabric_token,

@@ -8,18 +8,11 @@ Only TOPOLOGY tables go here (dim_*, fact_tickets). Telemetry goes to the Eventh
 OneLake upload uses a single reusable http.client.HTTPSConnection (3-step DFS:
 PUT create -> PATCH append -> PATCH flush) — requests/urllib3 hang on OneLake DFS.
 """
-import os, sys, winreg, json, subprocess, http.client
-def _restore_path():
-    parts = []
-    for root, sub in [(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
-                      (winreg.HKEY_CURRENT_USER, "Environment")]:
-        try:
-            k = winreg.OpenKey(root, sub); v, _ = winreg.QueryValueEx(k, "Path")
-            parts.append(os.path.expandvars(v)); winreg.CloseKey(k)
-        except Exception: pass
-    if parts: os.environ["PATH"] = ";".join(parts) + ";" + os.environ.get("PATH", "")
-_restore_path()
-if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8")
+import sys, json, subprocess, http.client
+# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
+from path_utils import IS_WINDOWS, restore_path, configure_stdout
+restore_path()
+configure_stdout()
 
 from pathlib import Path
 import requests
@@ -34,7 +27,7 @@ ONELAKE_HOST = "onelake.dfs.fabric.microsoft.com"
 def storage_token() -> str:
     out = subprocess.check_output(
         ["az", "account", "get-access-token", "--resource", "https://storage.azure.com",
-         "--query", "accessToken", "-o", "tsv"], shell=True)
+         "--query", "accessToken", "-o", "tsv"], shell=IS_WINDOWS)
     return out.decode().strip()
 
 

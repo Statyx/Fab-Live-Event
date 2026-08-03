@@ -9,18 +9,11 @@ so the ontology unifies batch topology + live telemetry in one semantic layer.
 NOTE: deploying via REST does NOT populate the child Graph Model — run deploy_graph.py
 afterwards (build + push the graph definition + RefreshGraph). See graph-agent.
 """
-import os, sys, winreg, json, base64, hashlib, uuid
-def _restore_path():
-    parts = []
-    for root, sub in [(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
-                      (winreg.HKEY_CURRENT_USER, "Environment")]:
-        try:
-            k = winreg.OpenKey(root, sub); v, _ = winreg.QueryValueEx(k, "Path")
-            parts.append(os.path.expandvars(v)); winreg.CloseKey(k)
-        except Exception: pass
-    if parts: os.environ["PATH"] = ";".join(parts) + ";" + os.environ.get("PATH", "")
-_restore_path()
-if hasattr(sys.stdout, "reconfigure"): sys.stdout.reconfigure(encoding="utf-8")
+import sys, json, base64, hashlib, uuid
+# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
+from path_utils import restore_path, configure_stdout
+restore_path()
+configure_stdout()
 
 import requests
 from helpers import (get_fabric_token, fabric_headers, load_config, load_state,
