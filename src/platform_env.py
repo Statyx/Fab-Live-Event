@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Cross-platform environment bootstrap shared by every deploy/utility script.
+"""Cross-platform environment bootstrap shared by every script in this repository.
+
+This module is duplicated verbatim across sibling repositories. Keep the two copies
+interchangeable: change it here and copy it over, rather than editing one side only.
 
 Why this module exists
 ----------------------
-The deploy scripts shell out to the Azure CLI (``az``). On Windows, activating a
+These scripts shell out to the Azure CLI (``az``). On Windows, activating a
 virtualenv from some terminals wipes ``PATH``, so ``az`` becomes unfindable
 mid-session. The workaround is to rebuild ``PATH`` from the Windows registry
 (machine-wide then user ``Environment`` keys).
@@ -15,8 +18,9 @@ logic once, and is the single place where OS-specific behaviour is allowed to li
 
 Canonical prologue
 ------------------
-Every script under ``src/`` starts with exactly these three lines, right after its
-module docstring (the first line keeps whatever stdlib modules that script needs)::
+Every script under ``src/`` that needs a working ``PATH`` starts with exactly these
+three lines, right after its module docstring (the first line keeps whatever stdlib
+modules that script needs)::
 
     import os, sys
     from platform_env import bootstrap
@@ -35,8 +39,10 @@ symbol                  Windows                             macOS / Linux
 ``find_executable()``   ``shutil.which``, retried once      ``shutil.which``
 ======================  ==================================  ======================
 
-``import winreg`` appears nowhere else in the repository; a regression test in
-``tests/test_smoke.py`` enforces that, and CI runs the suite on ``ubuntu-latest``.
+``import winreg`` must appear nowhere else in the repository. The accompanying test
+suite enforces that, together with the prologue above and the absence of any
+hard-coded ``shell=True``; CI runs those tests on Linux, which is what turns the
+guarantee into something more than a comment.
 """
 from __future__ import annotations
 
@@ -58,7 +64,7 @@ __all__ = [
 #: platform-dependent decision in this repository derives from this flag, so a
 #: single ``monkeypatch.setattr(platform_env, "IS_WINDOWS", False)`` is enough to
 #: exercise the non-Windows code paths from a Windows test run.
-IS_WINDOWS = sys.platform == "win32"
+IS_WINDOWS = sys.platform.startswith("win")
 
 #: Whether ``az`` must be launched through a shell.
 #:
@@ -131,28 +137,29 @@ def restore_path() -> None:
         os.environ["PATH"] = ";".join(parts) + ";" + os.environ.get("PATH", "")
 
 
-def configure_stdout(encoding: str = "utf-8") -> None:
-    """Force ``stdout`` to ``encoding`` so the scripts' box-drawing output survives.
+def configure_stdout() -> None:
+    """Force ``stdout`` to UTF-8 so the scripts' box-drawing output survives.
 
     Behaviour is identical on every platform. It matters most on Windows, whose
     console defaults to a legacy code page (cp1252) that cannot encode the ``✓``,
-    ``⚠`` and ``──`` characters the deploy scripts print; on macOS/Linux stdout is
+    ``⚠`` and ``──`` characters these scripts print; on macOS/Linux stdout is
     normally UTF-8 already and this is a harmless confirmation.
 
     Silently does nothing when ``stdout`` has been replaced by an object without
     ``reconfigure()`` — a pytest capture buffer, a pipe wrapper, a notebook stream.
 
-    Args:
-        encoding: target stdout encoding. Callers should not need to change it.
+    Takes no argument on purpose: UTF-8 is the only value that makes the output
+    correct, and a fixed signature keeps this module interchangeable with the copy
+    shipped by the sibling repository.
     """
     if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding=encoding)
+        sys.stdout.reconfigure(encoding="utf-8")
 
 
-def bootstrap(encoding: str = "utf-8") -> None:
+def bootstrap() -> None:
     """Standard script preamble: repair ``PATH``, then make ``stdout`` UTF-8.
 
-    This is the only entry point the deploy scripts call. The order matters and is
+    This is the only entry point the calling scripts need. The order matters and is
     the same on every platform: ``restore_path()`` first, so that a later
     ``subprocess`` call can find ``az``, then ``configure_stdout()``.
 
@@ -160,12 +167,9 @@ def bootstrap(encoding: str = "utf-8") -> None:
     any effect, since ``restore_path()`` returns immediately.
 
     Safe to call at import time, and safe to call more than once.
-
-    Args:
-        encoding: forwarded to :func:`configure_stdout`.
     """
     restore_path()
-    configure_stdout(encoding)
+    configure_stdout()
 
 
 def find_executable(name: str) -> Optional[str]:
