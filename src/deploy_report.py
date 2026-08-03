@@ -19,7 +19,6 @@ Design notes (from report-builder-agent/visual_catalog.legacy.md):
   - Rounded cards: vcObjects.border show=true + radius 8L.
 """
 import sys
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

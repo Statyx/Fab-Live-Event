@@ -5,7 +5,6 @@ The KQL database name == the eventhouse name (auto-created). Saves eventhouse_id
 kql_database_id, query_service_uri to state.
 """
 import sys, time
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

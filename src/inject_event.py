@@ -18,7 +18,6 @@ Critical CONGESTION alarm + event log fire once it crosses the threshold.
   python inject_event.py --loop --interval 10 --ramp 6 --cycles 40
 """
 import sys, argparse, time
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

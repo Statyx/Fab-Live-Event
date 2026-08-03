@@ -10,7 +10,6 @@ NOTE: deploying via REST does NOT populate the child Graph Model — run deploy_
 afterwards (build + push the graph definition + RefreshGraph). See graph-agent.
 """
 import sys, json, base64, hashlib, uuid
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

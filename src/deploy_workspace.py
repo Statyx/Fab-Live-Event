@@ -5,7 +5,6 @@ Idempotent: finds an existing workspace by name; otherwise creates + assigns cap
 Saves workspace_id to state.json.
 """
 import sys
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

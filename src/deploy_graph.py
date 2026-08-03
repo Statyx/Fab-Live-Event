@@ -9,7 +9,6 @@ model as deploy_ontology.py, pushes it via updateDefinition, then runs RefreshGr
 dataSource paths use the REAL OneLake locations from GET /lakehouses/{lh}/tables.
 """
 import sys, json, base64, hashlib, uuid, time
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

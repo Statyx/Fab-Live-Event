@@ -16,7 +16,6 @@ Intended rule (author in UI, leave STOPPED until ready):
   State  : shouldRun = false (stopped) until you flip it on for the demo
 """
 import sys
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

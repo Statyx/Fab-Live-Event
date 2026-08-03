@@ -14,7 +14,6 @@ telemetry shortcuts. Mirroring latency is ~5 min (TargetLatencyInMinutes=5); run
 `.show table <T> mirroring operations` — Latency 00:00:00 means fully mirrored.
 """
 import sys, time
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

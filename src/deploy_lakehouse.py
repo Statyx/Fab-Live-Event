@@ -9,12 +9,12 @@ OneLake upload uses a single reusable http.client.HTTPSConnection (3-step DFS:
 PUT create -> PATCH append -> PATCH flush) — requests/urllib3 hang on OneLake DFS.
 """
 import sys, json, subprocess, http.client
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from platform_env import AZ_NEEDS_SHELL, bootstrap
+from platform_env import bootstrap
 bootstrap()
 
 from pathlib import Path
 import requests
+from platform_env import AZ_NEEDS_SHELL
 from helpers import (load_config, load_state, save_state, get_fabric_token,
                      fabric_headers, poll_operation, find_item, print_step)
 

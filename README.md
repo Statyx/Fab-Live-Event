@@ -236,14 +236,20 @@ Everything under `src/` — data generation, the whole `deploy_all.py` pipeline,
 `inject_event.py`, `validate_powerbi.py` and the test suite — runs on **Windows, macOS and Linux**.
 CI runs the test gate on `ubuntu-latest`.
 
-`src/platform_env.py` is the single place that deals with platform differences
-(same module name and API as the twin repo `Fab-Network-Operations`):
+`src/platform_env.py` is the single place that deals with platform differences. It is kept
+**identical to the twin repo `Fab-Network-Operations`** — same module name, same API, same
+semantics, so both applications of the reference architecture answer this the same way:
+
+```python
+from platform_env import bootstrap
+bootstrap()
+```
 
 | | Windows | macOS / Linux |
 |---|---|---|
 | `import winreg` | yes, guarded by `IS_WINDOWS` | never imported (`winreg = None`) |
 | `restore_path()` | rebuilds `PATH` from the registry (machine then user `Path`) — venv activation can wipe it | no-op: the process `PATH` is already authoritative |
-| `find_executable()` | registry self-heal, then `shutil.which` | `shutil.which` |
+| `find_executable()` | `shutil.which`, then one registry self-heal + retry if not found | `shutil.which` |
 | `AZ_NEEDS_SHELL` | `True` — `az` is a `.cmd` shim, subprocess needs the shell | `False` — `shell=True` with an argv list would run only `az` and silently drop every argument |
 | `bootstrap()` | `restore_path()` + UTF-8 stdout | same, PATH step inert |
 

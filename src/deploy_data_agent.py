@@ -13,7 +13,6 @@ Usage:
   python deploy_data_agent.py --delete   # delete the agent
 """
 import sys, base64, json, uuid, time, argparse
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

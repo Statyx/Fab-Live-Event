@@ -11,7 +11,6 @@ The Knowledge Source (KQL DB), Teams action and schedule are added in the UI (ca
 done via API). shouldRun stays FALSE so the agent is NOT scheduled/active until you flip it.
 """
 import sys
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

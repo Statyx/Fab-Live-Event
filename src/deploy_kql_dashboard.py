@@ -11,7 +11,6 @@ FOUR persona pages (the 4 target audiences of the brief):
   Client            — premium/VIP zones, sponsored-zone attendance
 """
 import sys, uuid
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 

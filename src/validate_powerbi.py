@@ -5,13 +5,13 @@ executeQueries REST API. Confirms the Direct Lake model loads (topology + teleme
 shortcuts) and the key persona measures return values.
 """
 import sys, subprocess, json
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from platform_env import AZ_NEEDS_SHELL, bootstrap
+from platform_env import bootstrap
 bootstrap()
 
 from pathlib import Path
 import requests
 sys.path.insert(0, str(Path(__file__).parent))
+from platform_env import AZ_NEEDS_SHELL
 from helpers import load_state, print_step
 
 PBI = "https://api.powerbi.com/v1.0/myorg"

@@ -20,8 +20,7 @@ TENANT: az silently flips to another tenant. Set `az_subscription` in config.yam
 `az account set` first. Without it you get 404 EntityNotFound on the wrong tenant.
 """
 import sys
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
-from platform_env import AZ_NEEDS_SHELL, bootstrap
+from platform_env import bootstrap
 bootstrap()
 
 import argparse
@@ -29,6 +28,7 @@ import importlib
 import subprocess
 import time
 import requests
+from platform_env import AZ_NEEDS_SHELL
 from helpers import (load_config, load_state, get_fabric_token, fabric_headers,
                      get_kusto_token, print_step)
 

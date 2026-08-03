@@ -11,7 +11,6 @@ Run deploy_kql_shortcuts.py FIRST and wait ~5 min for mirroring, so the
 telemetry_kpi / telemetry_queue shortcut tables are populated before refresh.
 """
 import sys
-# ── cross-platform PATH self-heal (venv activation can wipe it; az runs via subprocess) ──
 from platform_env import bootstrap
 bootstrap()
 
