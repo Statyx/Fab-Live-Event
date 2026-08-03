@@ -7,7 +7,7 @@
 ![Microsoft Fabric](https://img.shields.io/badge/Microsoft-Fabric-0078D4?logo=microsoft&logoColor=white)
 ![Fabric IQ](https://img.shields.io/badge/Fabric_IQ-Ontology_+_Graph-6242C9)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-39_passing-2E9E44)
+![Tests](https://img.shields.io/badge/tests-50_passing-2E9E44)
 ![Portal](https://img.shields.io/badge/Portal-FastAPI-009688?logo=fastapi&logoColor=white)
 ![Deploy](https://img.shields.io/badge/deploy-idempotent-896610)
 
@@ -77,7 +77,7 @@ flowchart LR
 copy src\config.example.yaml src\config.yaml
 
 # 2. ✅ Mandatory test gate — never deploy on red
-python -m pytest tests/ -v --tb=short          # 39/39 offline
+python -m pytest tests/ -v --tb=short          # 50/50 offline
 
 # 3. Deploy everything (idempotent — generates data, then ends with a warm-up)
 python src\deploy_all.py
@@ -194,6 +194,7 @@ node build_deck.js          # → presentation/Architecture_Vision.pptx
 - ✅ **Test gate is mandatory** — `python -m pytest tests/ -v` before any `deploy_*.py`. On red: **stop, fix the code**.
 - ♻️ **Idempotent deploys** — every step reads/writes `src/state.json`; re-running is safe.
 - 🔐 **Secrets never committed** — `src/config.yaml`, `src/state.json`, `.vscode/mcp.json` are gitignored (use the `*.example` templates). No tenant / workspace / app-registration ID is hardcoded anywhere; CI enforces this.
+- 🕵️ **Leak detection is by shape, not by name** — `scripts/check_no_client_leak.py` (copied byte-for-byte from the canonical source, do not edit it) flags real GUIDs, real Fabric SQL endpoints and personal paths in Git-tracked files. Customer names are matched separately by `scripts/check_client_denylist.py`, whose list comes from the `CLIENT_DENYLIST` repository secret (one name per line) or a gitignored local `.clientdeny`. **The names are never committed to this public repo** — that list would be the leak. No secret configured: the rule warns and passes.
 - 🧪 **Synthetic data only** — every organisation, venue and sponsor in this repo is fictional.
 - ⚡ **F2+ capacity** — resume the capacity before a deploy/demo (Ontology / Graph / agents need it).
 - 🧠 **Reports are Legacy PBIX** — see the report gotchas below.
