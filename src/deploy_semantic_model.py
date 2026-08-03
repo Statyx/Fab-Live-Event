@@ -10,7 +10,7 @@ deploy_kql_shortcuts.py). ~40 DAX measures for the 4 personas
 Run deploy_kql_shortcuts.py FIRST and wait ~5 min for mirroring, so the
 telemetry_kpi / telemetry_queue shortcut tables are populated before refresh.
 """
-import os, sys
+import sys
 from platform_env import bootstrap
 bootstrap()
 

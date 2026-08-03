@@ -85,7 +85,7 @@ def test_scripts_share_the_canonical_prologue():
     call-site prologue has to stay byte-identical on both sides.
     """
     prologue = re.compile(
-        r"^import os, sys[^\n]*\n"
+        r"^import (?:os, )?sys[^\n]*\n"
         r"from platform_env import bootstrap\n"
         r"bootstrap\(\)\n",
         re.MULTILINE,

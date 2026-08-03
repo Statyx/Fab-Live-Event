@@ -4,7 +4,7 @@ Validate the Power BI layer: run DAX against SM_Event_Analytics via the Power BI
 executeQueries REST API. Confirms the Direct Lake model loads (topology + telemetry
 shortcuts) and the key persona measures return values.
 """
-import os, sys, subprocess, json
+import sys, subprocess, json
 from platform_env import bootstrap
 bootstrap()
 

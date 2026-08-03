@@ -3,7 +3,7 @@
 Batch-ingest the telemetry CSVs into the Eventhouse KQL tables via the Kusto
 streaming-ingestion REST API. Verifies row counts afterwards.
 """
-import os, sys, time
+import sys, time
 from platform_env import bootstrap
 bootstrap()
 

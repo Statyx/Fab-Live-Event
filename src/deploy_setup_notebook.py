@@ -3,7 +3,7 @@
 Deploy + run NB_Setup_Network — converts the uploaded topology CSVs (Files/raw/*.csv)
 into Delta tables in the Lakehouse. Telemetry is NOT here (it goes to the Eventhouse).
 """
-import os, sys
+import sys
 from platform_env import bootstrap
 bootstrap()
 

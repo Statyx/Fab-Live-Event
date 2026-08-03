@@ -19,7 +19,7 @@ TENANT: az silently flips to another tenant. Set `az_subscription` in config.yam
 (the Azure subscription display name, e.g. "My-Fabric-Subscription") and this script runs
 `az account set` first. Without it you get 404 EntityNotFound on the wrong tenant.
 """
-import os, sys
+import sys
 from platform_env import bootstrap
 bootstrap()
 

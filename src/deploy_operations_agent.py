@@ -10,7 +10,7 @@ and can alert via Teams. This script:
 The Knowledge Source (KQL DB), Teams action and schedule are added in the UI (cannot be
 done via API). shouldRun stays FALSE so the agent is NOT scheduled/active until you flip it.
 """
-import os, sys
+import sys
 from platform_env import bootstrap
 bootstrap()
 

@@ -4,7 +4,7 @@ Deploy the Fabric workspace (config `workspace_name`) and assign it to the capac
 Idempotent: finds an existing workspace by name; otherwise creates + assigns capacity.
 Saves workspace_id to state.json.
 """
-import os, sys
+import sys
 from platform_env import bootstrap
 bootstrap()
 

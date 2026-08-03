@@ -12,7 +12,7 @@ Usage:
   python deploy_data_agent.py            # create/update + publish
   python deploy_data_agent.py --delete   # delete the agent
 """
-import os, sys, base64, json, uuid, time, argparse
+import sys, base64, json, uuid, time, argparse
 from platform_env import bootstrap
 bootstrap()
 

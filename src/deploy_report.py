@@ -18,7 +18,7 @@ Design notes (from report-builder-agent/visual_catalog.legacy.md):
     trick instead.
   - Rounded cards: vcObjects.border show=true + radius 8L.
 """
-import os, sys
+import sys
 from platform_env import bootstrap
 bootstrap()
 
